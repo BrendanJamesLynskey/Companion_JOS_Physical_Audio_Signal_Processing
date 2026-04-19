@@ -1,0 +1,2442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Companion to Physical Audio Signal Processing — Julius O. Smith III</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+<style>
+:root {
+  --bg: #0a0b0f;
+  --bg2: #12141c;
+  --bg3: #1a1d2a;
+  --fg: #d4d6e0;
+  --fg-dim: #8a8d9a;
+  --accent: #e8a44a;
+  --accent2: #4a9de8;
+  --accent3: #5ce89a;
+  --accent4: #e85a7a;
+  --accent5: #b06ae8;
+  --border: #2a2d3a;
+  --glow: rgba(232,164,74,0.15);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg);color:var(--fg);font-family:'Palatino Linotype','Book Antiqua',Palatino,'Georgia',serif;line-height:1.75;overflow-x:hidden}
+::selection{background:var(--accent);color:var(--bg)}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s}
+a:hover{border-bottom-color:var(--accent)}
+
+header{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;position:relative;overflow:hidden}
+header canvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.55}
+header .content{position:relative;z-index:1;max-width:860px}
+header h1{font-size:clamp(2rem,5vw,3.4rem);font-weight:300;letter-spacing:.05em;color:var(--accent);text-shadow:0 0 60px rgba(232,164,74,.3);margin-bottom:.3em}
+header h1 em{font-style:italic;color:var(--fg);font-weight:400}
+header .subtitle{font-size:1.12rem;color:var(--fg-dim);max-width:680px;margin:0 auto 2em}
+header .people{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:2em}
+header .people span{font-size:.9rem;color:var(--fg);padding:.35em .9em;border:1px solid var(--border);border-radius:2px;background:rgba(26,29,42,.7)}
+
+nav#toc{position:sticky;top:0;z-index:100;background:rgba(10,11,15,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.6rem 1rem;overflow-x:auto;white-space:nowrap;text-align:center}
+nav#toc a{display:inline-block;font-size:.78rem;color:var(--fg-dim);padding:.3em .7em;margin:0 .1em;letter-spacing:.04em;text-transform:uppercase;font-family:'Lucida Console',Monaco,monospace;transition:color .2s;border-bottom:none}
+nav#toc a:hover,nav#toc a.active{color:var(--accent)}
+
+section{max-width:920px;margin:0 auto;padding:4rem 1.5rem;border-bottom:1px solid var(--border)}
+section:last-of-type{border-bottom:none}
+h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:300;color:var(--accent);margin-bottom:.3em;letter-spacing:.03em}
+h2 .num{font-family:'Lucida Console',Monaco,monospace;font-size:.7em;color:var(--fg-dim);margin-right:.5em}
+h3{font-size:1.2rem;color:var(--accent2);margin:2em 0 .5em;font-weight:400}
+h4{font-size:1rem;color:var(--accent3);margin:1.5em 0 .3em;font-weight:400}
+p{margin-bottom:1.2em}
+.lead{font-size:1.08rem;color:var(--fg);margin-bottom:1.5em}
+
+.viz{margin:2em 0;background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.viz canvas{display:block;width:100%;cursor:crosshair}
+.viz-caption{font-size:.8rem;color:var(--fg-dim);padding:.6em 1em;border-top:1px solid var(--border);font-family:'Lucida Console',Monaco,monospace}
+
+.controls{display:flex;flex-wrap:wrap;gap:.8rem;padding:.8em 1em;background:var(--bg3);border-top:1px solid var(--border);align-items:center}
+.controls label{font-size:.78rem;color:var(--fg-dim);font-family:'Lucida Console',Monaco,monospace;display:flex;align-items:center;gap:.4em}
+.controls input[type="range"]{width:120px;accent-color:var(--accent)}
+.controls select{background:var(--bg);color:var(--fg);border:1px solid var(--border);padding:.3em .5em;font-size:.78rem;border-radius:2px;font-family:inherit}
+.controls button,.btn{background:var(--accent);color:var(--bg);border:none;padding:.4em 1em;font-size:.78rem;font-family:'Lucida Console',Monaco,monospace;cursor:pointer;border-radius:2px;letter-spacing:.03em;transition:background .2s}
+.controls button:hover,.btn:hover{background:#f0b860}
+.btn-outline{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+.btn-outline:hover{background:var(--accent);color:var(--bg)}
+
+.math{display:block;text-align:center;padding:1.4em 1.2em;margin:1.5em 0;background:var(--bg2);border-left:3px solid var(--accent);font-size:1.1rem;color:var(--fg);overflow-x:auto;border-radius:0 4px 4px 0}
+.math .katex{font-size:1.22em}
+.math-inline .katex{font-size:1.0em}
+
+.timeline{position:relative;padding:1em 0 1em 2em;margin:2em 0}
+.timeline::before{content:'';position:absolute;left:.6em;top:0;bottom:0;width:2px;background:var(--border)}
+.timeline-item{position:relative;margin-bottom:1.8em;padding-left:1.5em}
+.timeline-item::before{content:'';position:absolute;left:-1.95em;top:.5em;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.timeline-year{font-family:'Lucida Console',Monaco,monospace;color:var(--accent);font-size:.85rem;margin-bottom:.2em}
+.timeline-text{font-size:.92rem;color:var(--fg-dim)}
+
+blockquote{border-left:3px solid var(--accent5);padding:.8em 1.2em;margin:1.5em 0;color:var(--fg-dim);font-style:italic;background:rgba(176,106,232,.05)}
+blockquote cite{display:block;font-size:.85rem;color:var(--accent5);margin-top:.5em;font-style:normal}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5em;margin:1.5em 0}
+@media(max-width:700px){.grid-2{grid-template-columns:1fr}}
+
+.references{margin-top:2em;padding:1.5em;background:var(--bg2);border:1px solid var(--border);border-radius:4px}
+.references h3{margin-top:0}
+.references ol{padding-left:1.5em}
+.references li{font-size:.85rem;color:var(--fg-dim);margin-bottom:.5em;line-height:1.5}
+.references li em{color:var(--fg)}
+
+footer{text-align:center;padding:3em 1.5em;color:var(--fg-dim);font-size:.85rem;border-top:1px solid var(--border)}
+
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--fg-dim)}
+
+.expandable{margin:1.5em 0;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.expandable summary{padding:.8em 1.2em;background:var(--bg3);cursor:pointer;font-size:.9rem;color:var(--accent5);font-family:'Lucida Console',Monaco,monospace;letter-spacing:.03em;list-style:none;display:flex;align-items:center;gap:.5em}
+.expandable summary::before{content:'>';font-size:.7em;transition:transform .2s}
+details[open] summary::before{transform:rotate(90deg)}
+.expandable summary:hover{color:var(--fg)}
+.expandable .inner{padding:1.2em 1.4em;background:rgba(176,106,232,.04)}
+.expandable .inner p{margin-bottom:.8em}
+.expandable .inner p:last-child{margin-bottom:0}
+
+.note{font-size:.85rem;color:var(--fg-dim);margin:1em 0;padding:.6em 1em;border-left:2px solid var(--accent3);background:rgba(92,232,154,.05)}
+.warn{font-size:.85rem;color:var(--fg-dim);margin:1em 0;padding:.6em 1em;border-left:2px solid var(--accent4);background:rgba(232,90,122,.05)}
+
+.xref{display:flex;flex-wrap:wrap;gap:.5em;margin:1em 0}
+.xref a{font-size:.78rem;padding:.3em .7em;border:1px solid var(--border);background:var(--bg3);font-family:'Lucida Console',Monaco,monospace;color:var(--fg-dim);border-bottom:none}
+.xref a:hover{color:var(--accent);border-color:var(--accent)}
+
+table{width:100%;border-collapse:collapse;margin:1.5em 0;font-size:.9rem}
+th,td{padding:.5em .8em;border:1px solid var(--border);text-align:left}
+th{background:var(--bg3);color:var(--accent2);font-weight:400;font-family:'Lucida Console',Monaco,monospace;font-size:.78rem;letter-spacing:.03em}
+td{color:var(--fg-dim)}
+td code,p code{font-family:'Lucida Console',Monaco,monospace;font-size:.85em;color:var(--accent3);background:rgba(92,232,154,.07);padding:.05em .3em;border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- HERO                                                           -->
+<!-- ============================================================ -->
+<header>
+  <canvas id="heroCanvas"></canvas>
+  <div class="content">
+    <h1>Companion to <em>Physical Audio Signal Processing</em></h1>
+    <p class="subtitle">
+      A visual, interactive companion to Julius O. Smith III's online book
+      <a href="https://ccrma.stanford.edu/~jos/pasp/" target="_blank" rel="noopener">Physical Audio Signal Processing</a> —
+      the wave equation, digital waveguides, Karplus–Strong, reed and bow nonlinearities,
+      FDTD, modal synthesis, commuted piano synthesis, and waveguide reverb.
+    </p>
+    <div class="people">
+      <span>Helmholtz</span>
+      <span>McIntyre &amp; Woodhouse</span>
+      <span>Karplus &amp; Strong</span>
+      <span>Julius O. Smith III</span>
+      <span>Van Duyne</span>
+    </div>
+    <a href="#ch1" class="btn">Begin &#8595;</a>
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<!-- TOC                                                            -->
+<!-- ============================================================ -->
+<nav id="toc">
+  <a href="#ch1">1 &middot; Prologue</a>
+  <a href="#ch2">2 &middot; History</a>
+  <a href="#ch3">3 &middot; Wave Equation</a>
+  <a href="#ch4">4 &middot; Waveguides</a>
+  <a href="#ch5">5 &middot; Karplus&ndash;Strong</a>
+  <a href="#ch6">6 &middot; Junctions</a>
+  <a href="#ch7">7 &middot; Bowed Strings</a>
+  <a href="#ch8">8 &middot; Winds</a>
+  <a href="#ch9">9 &middot; FDTD</a>
+  <a href="#ch10">10 &middot; Modal</a>
+  <a href="#ch11">11 &middot; Commuted Piano</a>
+  <a href="#ch12">12 &middot; Reverb</a>
+  <a href="#ch13">13 &middot; Legacy</a>
+</nav>
+
+<!-- Chapter sections are inserted below this marker -->
+<!-- CONTENT:START -->
+
+<!-- ============================================================ -->
+<!-- CH 1 · PROLOGUE                                                -->
+<!-- ============================================================ -->
+<section id="ch1">
+  <h2><span class="num">1</span>Prologue &mdash; Physics meets DSP</h2>
+  <p class="lead">
+    Every musical instrument is a machine for converting small, slow gestures &mdash; a
+    plucked finger, a bowed arm, a breath &mdash; into radiated air pressure variations.
+    The machine exploits waves. A string shakes transverse waves along its length;
+    a clarinet column pumps longitudinal waves through compressible air; a piano
+    soundboard radiates plate modes into the room. Julius O.&nbsp;Smith's
+    <a href="https://ccrma.stanford.edu/~jos/pasp/" target="_blank" rel="noopener"><em>Physical
+    Audio Signal Processing</em></a> (PASP) is the canonical modern account of how those
+    waves are modelled, discretised, and made to sing inside a real-time DSP kernel.
+  </p>
+  <p>
+    This companion is a browser-first visual walk through PASP's core ideas. The text
+    is the authority &mdash; we link to it throughout. What the browser adds is
+    interactivity: you pluck the string, you change the impedance, you blow harder on
+    the reed and hear what happens. Every canvas here is computing real physics in
+    real time; every audio button synthesises through the Web Audio API, not a
+    pre-recorded sample.
+  </p>
+  <h3>Why physical modelling matters</h3>
+  <p>
+    Physical modelling rests on three convictions that are not shared by either sample
+    playback or additive synthesis:
+  </p>
+  <ul style="list-style:disc;padding-left:1.4em;margin-bottom:1.2em">
+    <li><strong>Realism under continuous control.</strong> A physical model responds to
+      the player the way an instrument does &mdash; bowing a little harder brightens the
+      spectrum and shifts the Helmholtz corner, not just the loudness. No sample set
+      can enumerate those in-between states.</li>
+    <li><strong>Gestural economy.</strong> A complete clarinet lives in a handful of
+      parameters (breath, embouchure, tone-hole mask). A complete bowed string lives
+      in three (bow force, velocity, position). Expressive control needs a small
+      number of physically meaningful knobs, not a multi-gigabyte sample library.</li>
+    <li><strong>Computational efficiency.</strong> Digital waveguides reduce a
+      thousand-node finite-difference simulation to two delay lines and a
+      single-pole lowpass. Smith's entire programme is about how to keep that
+      efficiency while remaining faithful to the physics that matters.</li>
+  </ul>
+  <h3>How this guide is laid out</h3>
+  <p>
+    We begin with a short history, then derive the 1-D wave equation and D'Alembert's
+    solution that makes digital waveguides possible. Chapters 4&ndash;6 build
+    waveguides, Karplus&ndash;Strong, and wave-variable scattering. Chapters 7&ndash;8
+    add the two classical nonlinear excitations &mdash; the bow and the reed.
+    Chapter 9 contrasts waveguides with FDTD on a 2-D membrane. Chapter 10 covers
+    modal synthesis. Chapter 11 assembles the pieces into a small piano via
+    commuted synthesis. Chapter 12 closes the acoustic loop with waveguide reverb,
+    and Chapter 13 surveys the legacy.
+  </p>
+  <div class="xref">
+    <a href="https://ccrma.stanford.edu/~jos/pasp/" target="_blank">PASP online</a>
+    <a href="https://github.com/BrendanJamesLynskey/Synth_Physical_Modelling" target="_blank">Synth: Physical Modelling</a>
+    <a href="https://github.com/BrendanJamesLynskey/Room_Acoustics_Reverb" target="_blank">Room Acoustics &amp; Reverb</a>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 2 · HISTORY                                                 -->
+<!-- ============================================================ -->
+<section id="ch2">
+  <h2><span class="num">2</span>A History of the Synthetic Instrument</h2>
+  <p class="lead">
+    Physical audio modelling has a 160-year lineage. It starts with Helmholtz peering
+    down a vibration microscope at a violin string, passes through mid-century
+    analogue analog-circuit emulation, crystallises in the early 1980s at Stanford,
+    becomes a commercial product inside the Yamaha VL1, and arrives, in 2020, as a
+    differentiable neural layer inside DDSP.
+  </p>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-year">1862</div>
+      <div class="timeline-text">
+        <strong>Hermann von Helmholtz</strong>, <em>Die Lehre von den Tonempfindungen</em>.
+        Using a vibration microscope, Helmholtz observes that a bowed violin string
+        moves in a sawtooth, not a sinusoid &mdash; the <em>Helmholtz motion</em>, with
+        one sharp corner travelling back and forth along the string and reflecting at
+        both ends. The shape is independent of bow position; only the speed of the
+        corner changes. This is the empirical foundation of every later bowed-string
+        model.
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1918</div>
+      <div class="timeline-text">
+        <strong>C.&nbsp;V.&nbsp;Raman</strong> publishes a thorough theoretical
+        treatment of bowed-string motion, generalising Helmholtz's observations to
+        multiple-corner ("higher-mode") regimes. Raman's paper remains the
+        go-to reference for bowed-string curiosities.
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1971</div>
+      <div class="timeline-text">
+        <strong>Lejaren Hiller &amp; Pierre Ruiz</strong> publish <em>Synthesizing
+        Musical Sounds by Solving the Wave Equation for Vibrating Objects</em>
+        (JAES) &mdash; arguably the first paper to use a finite-difference solver
+        for audio synthesis.
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1979</div>
+      <div class="timeline-text">
+        <strong>Michael McIntyre &amp; Jim Woodhouse</strong>, <em>On the fundamentals
+        of bowed string dynamics</em>. They recast the bowed-string problem as a
+        convolution with a reflection function plus a nonlinear friction table.
+        Their formulation is identical in structure to what Smith would later name
+        the <em>digital waveguide</em>: two travelling waves meeting at a nonlinear
+        junction.
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1983</div>
+      <div class="timeline-text">
+        <strong>Kevin Karplus &amp; Alex Strong</strong>, <em>Digital Synthesis of
+        Plucked-String and Drum Timbres</em> (Computer Music Journal 7(2)). A noise
+        burst circulating through a delay line and a one-sample averaging filter
+        produces a strikingly realistic plucked string. Strong had discovered it
+        empirically; Karplus gave it its mathematical form. David Jaffe and Julius
+        Smith's companion article in the same issue extends it to pitch-accurate
+        tuning and pick-position filtering.
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1985</div>
+      <div class="timeline-text">
+        <strong>Cordis-Anima</strong> (Cadoz, Luciani, Florens, ACROE Grenoble). A
+        mass-interaction physical modelling language in which instruments are built
+        from masses, springs, and friction-damper elements. Cordis-Anima remains
+        the most general of the physical paradigms &mdash; at the cost of efficiency.
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1986&ndash;1992</div>
+      <div class="timeline-text">
+        <strong>Julius O.&nbsp;Smith III</strong> develops and formalises the
+        <em>digital waveguide</em>. The 1987 JASA article and the 1992 CMJ tutorial
+        together establish the framework: a travelling-wave decomposition
+        $y=y^+ + y^-$, two delay lines, and reflection/transmission filters at the
+        ends. Waveguides subsume Karplus&ndash;Strong, generalise to bowed strings
+        and reed instruments, and commute naturally with reverberation networks.
+        Patents licensed to Yamaha power the VL1.
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1989</div>
+      <div class="timeline-text">
+        <strong>Modalys</strong> (originally <em>Mosaic</em>), developed at IRCAM by
+        Jean-Marie Adrien and Joel Bensoam. A modal-synthesis environment in which
+        instruments are assembled from mode sets of simple objects (strings, bars,
+        plates, tubes) connected by nonlinear interactions. Now the standard modal
+        tool at IRCAM and McGill.
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1994</div>
+      <div class="timeline-text">
+        <strong>Yamaha VL1</strong> ships. Two-voice, monophonic, US$9,000. Inside:
+        a dedicated waveguide DSP implementing Smith's patents. Derivative models
+        (VL7, VL70-m, VP1, EX5) follow. The VL line is the first commercial
+        physical-modelling synthesiser.
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1995</div>
+      <div class="timeline-text">
+        <strong>Smith &amp; Van Duyne</strong>, <em>Commuted Piano Synthesis</em>.
+        Because the hammer&ndash;string&ndash;soundboard system is linear in the
+        regions that matter, the soundboard response can be convolved into the
+        excitation, leaving only a single string waveguide per key at run-time.
+        The insight makes real-time piano modelling tractable.
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2006</div>
+      <div class="timeline-text">
+        <strong>Pianoteq</strong> (Modartt), by Philippe Guillaume, ships the first
+        commercial physically-modelled piano. A 40 MB installer replaces the
+        multi-gigabyte sample libraries then dominant. Pianoteq's success is the
+        proof-of-concept for physical-model instruments at consumer price points.
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2020</div>
+      <div class="timeline-text">
+        <strong>DDSP</strong> (Engel, Hantrakul, Gu, Roberts, ICLR 2020). A
+        differentiable harmonic-plus-noise oscillator is trained end-to-end from
+        audio. It is a physically-inspired synthesiser rather than a waveguide,
+        but it marks the first large-scale merger of signal-model priors with
+        neural parameter estimation. Subsequent work (Jaques, Engel, Wagenaar,
+        Simon, Roberts) wires differentiable waveguide and FDTD blocks into
+        PyTorch so a neural network can learn its excitation.
+      </div>
+    </div>
+  </div>
+
+  <h3>Timeline as a spring-mass-damper animation</h3>
+  <div class="viz">
+    <canvas id="timelineViz" height="240" style="height:240px"></canvas>
+    <div class="viz-caption">Each coloured orbit = one decade since 1860; radius ~ decade index, colour = dominant paradigm (mechanical, analog, digital, neural).</div>
+  </div>
+
+  <div class="xref">
+    <a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide.html" target="_blank">PASP: Digital Waveguide</a>
+    <a href="https://github.com/BrendanJamesLynskey/Synth_Physical_Modelling" target="_blank">Synth: Physical Modelling</a>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 3 · WAVE EQUATION                                           -->
+<!-- ============================================================ -->
+<section id="ch3">
+  <h2><span class="num">3</span>The 1-D Wave Equation</h2>
+  <p class="lead">
+    Almost every physical-audio model in this guide begins with the same partial
+    differential equation. It describes transverse motion on an ideal flexible string
+    and, with minor relabelling, longitudinal pressure in a thin tube. Writing it out
+    and solving it by D'Alembert's method is the single most important step in the
+    book &mdash; everything that follows is a finite, damped, nonlinear version of
+    this starting point.
+  </p>
+
+  <h3>Derivation from mass and tension</h3>
+  <p>
+    Take an ideal uniform string of linear mass density $\rho$ under tension $K$.
+    Isolate an infinitesimal segment at position $x$ with length $\Delta x$ and
+    transverse displacement $y(x,t)$. For small slopes the vertical component of
+    tension at one end is $K\,\partial y/\partial x$; at the other end it is
+    $K\,\partial y/\partial x + K\,\partial^2 y/\partial x^2\,\Delta x$. Newton's
+    second law for the segment gives
+  </p>
+  <div class="math">
+    $$\rho\,\Delta x\,\frac{\partial^2 y}{\partial t^2} \;=\; K\,\frac{\partial^2 y}{\partial x^2}\,\Delta x.$$
+  </div>
+  <p>
+    Dividing by $\rho\,\Delta x$ and writing $c^2 = K/\rho$ yields the canonical form:
+  </p>
+  <div class="math">
+    $$\frac{\partial^2 y}{\partial t^2} \;=\; c^2\,\frac{\partial^2 y}{\partial x^2}.$$
+  </div>
+  <p>
+    The constant $c$ is the transverse wave speed. For a bronze-wound steel violin
+    G-string ($\rho \approx 10^{-3}$ kg/m, $K \approx 45$ N) one finds
+    $c \approx 210$ m/s; at the string's fundamental the wavelength is twice its
+    length.
+  </p>
+
+  <h3>D'Alembert's solution</h3>
+  <p>
+    The second-order equation factors:
+  </p>
+  <div class="math">
+    $$\left(\frac{\partial}{\partial t}+c\frac{\partial}{\partial x}\right)\left(\frac{\partial}{\partial t}-c\frac{\partial}{\partial x}\right)y \;=\; 0.$$
+  </div>
+  <p>
+    Each factor is a first-order advection equation. The general solution, due to
+    D'Alembert (1747), is the sum of an arbitrary right-going wave and an arbitrary
+    left-going wave:
+  </p>
+  <div class="math">
+    $$y(x,t) \;=\; y^{+}(x-ct) \;+\; y^{-}(x+ct).$$
+  </div>
+  <p>
+    This is the idea on which every digital waveguide in this companion rests. The
+    string's state at any point is the sum of two independent travelling waves; to
+    simulate it, we only need to translate two 1-D arrays along a line and handle
+    what happens at the two ends.
+  </p>
+
+  <h3>Boundary conditions</h3>
+  <p>
+    Physical strings are clamped at one or both ends, and the boundary condition
+    decides the sign of the reflection:
+  </p>
+  <div class="math">
+    $$y^{-}_{\mathrm{out}} \;=\; -y^{+}_{\mathrm{in}} \quad (\text{fixed end, }y=0),\qquad
+      y^{-}_{\mathrm{out}} \;=\; +y^{+}_{\mathrm{in}} \quad (\text{free end, }\partial y/\partial x=0).$$
+  </div>
+  <p>
+    A fixed end <em>inverts</em> the incoming wave; a free end reflects it unchanged.
+    This single fact determines the harmonic series of every stringed instrument:
+    fixed&ndash;fixed yields a full harmonic series $nf_1$; fixed&ndash;free yields
+    only odd harmonics $(2n-1)f_1$.
+  </p>
+
+  <h3>Interactive: release a lump and watch it bounce</h3>
+  <p>
+    Drop a Gaussian lump on the string and watch it split, bounce, and recombine.
+    Toggle the right-hand boundary between fixed and free to hear the series change.
+  </p>
+  <div class="viz">
+    <canvas id="ch3wave" height="320" style="height:320px"></canvas>
+    <div class="controls">
+      <label>Right end
+        <select id="ch3bc">
+          <option value="fixed" selected>Fixed (inverting)</option>
+          <option value="free">Free (non-inverting)</option>
+        </select>
+      </label>
+      <label>Damping <input type="range" id="ch3damp" min="0" max="0.02" step="0.0005" value="0.002"> <span id="ch3dampV">0.002</span></label>
+      <label>Pluck position <input type="range" id="ch3pos" min="0.05" max="0.95" step="0.01" value="0.3"> <span id="ch3posV">0.30</span></label>
+      <button id="ch3pluck">Pluck</button>
+      <button id="ch3play">Listen</button>
+    </div>
+    <div class="viz-caption">Orange = total displacement $y(x,t)$ &middot; green = right-going component $y^{+}$ &middot; purple = left-going component $y^{-}$.</div>
+  </div>
+
+  <details class="expandable">
+    <summary>Why the factors in $(\partial_t + c\partial_x)(\partial_t - c\partial_x)$ commute</summary>
+    <div class="inner">
+      <p>
+        These two first-order operators are linear and have constant coefficients, so
+        they commute as operators. In more physical language, right-going waves and
+        left-going waves are independent: perturbing one has no effect on the other,
+        which is exactly what makes the waveguide a pair of <em>separate</em> delay
+        lines.
+      </p>
+    </div>
+  </details>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 4 · DIGITAL WAVEGUIDES                                      -->
+<!-- ============================================================ -->
+<section id="ch4">
+  <h2><span class="num">4</span>Digital Waveguides</h2>
+  <p class="lead">
+    A digital waveguide is the discretisation of D'Alembert's solution. Sample the
+    travelling waves $y^{+}$ and $y^{-}$ at rate $f_s$; use a spatial step
+    $\Delta x = c/f_s$ so that one sample of time exactly equals one step of space;
+    and the wave equation becomes two shift registers. That is the whole idea.
+  </p>
+
+  <h3>From continuous travelling waves to delay lines</h3>
+  <p>
+    Discretise $y^{+}(x-ct)$ as $y^{+}[n,m] = y^{+}(m\Delta x, n\Delta t)$. Because
+    right-going waves only translate to the right, we have
+  </p>
+  <div class="math">
+    $$y^{+}[n+1,\,m+1] \;=\; y^{+}[n,\,m].$$
+  </div>
+  <p>
+    That is precisely a unit delay. Similarly $y^{-}[n+1, m-1] = y^{-}[n, m]$ is a
+    backwards unit delay. A string of length $L = M\Delta x$ is therefore a pair of
+    length-$M$ delay lines, wrapped back to each other at both ends by reflection
+    filters.
+  </p>
+  <div class="math">
+    $$f_s \;=\; c/\Delta x, \qquad M \;=\; L/\Delta x, \qquad \text{round-trip samples } = 2M.$$
+  </div>
+
+  <h3>Loss and dispersion lumped at the boundary</h3>
+  <p>
+    In a real string, each sample of travel accrues a little frequency-dependent loss
+    (air damping, internal friction) and a little dispersion (from bending stiffness).
+    A waveguide hides this cost by <em>commuting</em> the loss from every sample into
+    a single filter at the reflection point. As long as the filter's total loss per
+    round trip matches the physical loss per round trip, the ear cannot tell the
+    difference.
+  </p>
+  <div class="math">
+    $$y^{-}[n, 0] \;=\; -H_{\mathrm{loss}}(z)\,y^{+}[n, 0].$$
+  </div>
+  <p>
+    The simplest choice is the one-zero lowpass Karplus and Strong stumbled onto:
+    $H(z) = (1+z^{-1})/2$. Better models use a one-pole or biquad lowpass so the
+    decay time can be tuned per-frequency.
+  </p>
+
+  <h3>Output</h3>
+  <p>
+    Displacement at spatial sample $m$ is read as $y[n,m] = y^{+}[n,m] + y^{-}[n,m]$.
+    For perceptual purposes one typically reads from one fixed point on the string
+    (the bridge); the radiated signal at the ear is this bridge velocity convolved
+    with the soundboard response.
+  </p>
+
+  <h3>Interactive: a full bowed/plucked-string waveguide</h3>
+  <p>
+    Two delay lines, one reflection lowpass, and a pick-position comb. Pluck the
+    string at a chosen point and listen. The two slider knobs map to the physical
+    attributes you hear: <em>pitch</em> (delay length), <em>body</em> (decay time), and
+    <em>tone</em> (reflection-filter brightness).
+  </p>
+  <div class="viz">
+    <canvas id="ch4wg" height="300" style="height:300px"></canvas>
+    <div class="controls">
+      <label>Pitch (Hz) <input type="range" id="ch4f" min="80" max="800" value="196" step="1"> <span id="ch4fV">196</span></label>
+      <label>Decay (s) <input type="range" id="ch4dec" min="0.2" max="8" value="3" step="0.1"> <span id="ch4decV">3.0</span></label>
+      <label>Brightness <input type="range" id="ch4br" min="0.5" max="0.999" value="0.95" step="0.001"> <span id="ch4brV">0.95</span></label>
+      <label>Pick pos <input type="range" id="ch4pp" min="0.05" max="0.5" value="0.2" step="0.01"> <span id="ch4ppV">0.20</span></label>
+      <button id="ch4pluck">Pluck &amp; listen</button>
+    </div>
+    <div class="viz-caption">Top: snapshot of right-going (green) and left-going (purple) delay lines; bottom: bridge output over the last 0.5 s.</div>
+  </div>
+
+  <div class="xref">
+    <a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Models.html" target="_blank">PASP: Digital Waveguide Models</a>
+    <a href="https://ccrma.stanford.edu/~jos/swgt/" target="_blank">Smith: Digital Waveguide tutorial</a>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 5 · KARPLUS-STRONG                                          -->
+<!-- ============================================================ -->
+<section id="ch5">
+  <h2><span class="num">5</span>Karplus&ndash;Strong</h2>
+  <p class="lead">
+    Karplus&ndash;Strong is the simplest waveguide in the world. A single delay line
+    of length $N$, a one-zero averaging filter, and a noise burst as excitation.
+    Two lines of C code. The sound is a startlingly convincing plucked string &mdash;
+    vaguely steel, vaguely nylon, and, if you squint, vaguely koto. It was discovered
+    empirically at Stanford in 1978 by Alex Strong on a Samson Box, then mathematised
+    by Kevin Karplus, and published in 1983 in <em>Computer Music Journal</em>. In
+    the same issue, David Jaffe and Julius Smith extended it with pitch-accurate
+    fractional-delay tuning, a pick-position comb, and a dynamic-level filter
+    &mdash; effectively the first <em>extended</em> plucked-string waveguide.
+  </p>
+
+  <h3>The algorithm</h3>
+  <p>
+    The KS loop is a single difference equation. Let $y[n]$ be the delay-line output:
+  </p>
+  <div class="math">
+    $$y[n] \;=\; \tfrac{1}{2}\bigl(y[n-N] + y[n-N-1]\bigr).$$
+  </div>
+  <p>
+    The mean-of-two filter inside the loop has transfer function
+    $H(z) = \tfrac{1}{2}(1+z^{-1})$, a mild lowpass with a zero at Nyquist. It both
+    damps the sound at higher frequencies (realistic) and shifts the loop's phase
+    (introducing a small tuning error that Jaffe&nbsp;&amp;&nbsp;Smith fix with an
+    all-pass).
+  </p>
+
+  <h3>Excitation matters</h3>
+  <p>
+    The classical KS excitation is a burst of white noise: the pluck is modelled as
+    "all spectral content present simultaneously, then the physics removes what
+    isn't allowed." A short impulse is also useful &mdash; it gives a cleaner attack
+    at the cost of some perceptual "pluckiness." The pick-position comb filter
+    $1-z^{-p}$ emphasises the idea that a pluck at fractional position $p/N$ along
+    the string is silent at modes whose node sits at that position.
+  </p>
+
+  <h3>Interactive: live Karplus&ndash;Strong</h3>
+  <div class="viz">
+    <canvas id="ch5ks" height="280" style="height:280px"></canvas>
+    <div class="controls">
+      <label>Pitch (Hz) <input type="range" id="ch5f" min="80" max="880" value="220" step="1"> <span id="ch5fV">220</span></label>
+      <label>Damping <input type="range" id="ch5d" min="0.8" max="0.999" value="0.99" step="0.001"> <span id="ch5dV">0.990</span></label>
+      <label>Pick pos <input type="range" id="ch5p" min="0.05" max="0.5" value="0.22" step="0.01"> <span id="ch5pV">0.22</span></label>
+      <label>Excitation
+        <select id="ch5ex">
+          <option value="noise" selected>Noise burst</option>
+          <option value="impulse">Impulse</option>
+          <option value="rough">Rough (lowpass noise)</option>
+        </select>
+      </label>
+      <button id="ch5pluck">Pluck</button>
+    </div>
+    <div class="viz-caption">Top: delay-line contents snapshot. Bottom: radiated output over the last 0.5 s.</div>
+  </div>
+
+  <details class="expandable">
+    <summary>Aside: Jaffe &amp; Smith's CMJ paper (1983)</summary>
+    <div class="inner">
+      <p>
+        The Jaffe&nbsp;&amp;&nbsp;Smith companion article in CMJ 7(2) introduced:
+        (a) a first-order all-pass in the loop to correct the half-sample phase
+        shift of the KS lowpass, enabling pitch-accurate fractional-delay tuning;
+        (b) a pick-position comb $1-z^{-p}$ at the input; (c) a dynamics filter whose
+        cutoff tracks plucking intensity; (d) "sympathetic string" coupling through
+        a shared termination filter. Every one of these ideas reappears in the more
+        general waveguide framework.
+      </p>
+    </div>
+  </details>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 6 · REFLECTIONS AND JUNCTIONS                               -->
+<!-- ============================================================ -->
+<section id="ch6">
+  <h2><span class="num">6</span>Reflections and Junctions</h2>
+  <p class="lead">
+    What happens when a wave arrives at the join between two strings of different
+    mass densities, or between a string and a bridge? Part of the wave continues
+    (transmission) and part of it comes back (reflection). The split is controlled by
+    the <em>wave impedance</em> of each segment.
+  </p>
+
+  <h3>Wave impedance</h3>
+  <p>
+    For a flexible string the wave impedance is
+  </p>
+  <div class="math">
+    $$Z \;=\; \sqrt{K\,\rho} \;=\; \rho\,c,$$
+  </div>
+  <p>
+    with units of force-per-velocity. Denser strings under the same tension have
+    higher impedance. Strings of higher tension at the same density also have higher
+    impedance.
+  </p>
+
+  <h3>Two-port scattering junction</h3>
+  <p>
+    At a lossless junction between two media of impedance $Z_1$ and $Z_2$, force
+    continuity and velocity continuity give the Fresnel-style scattering formulas:
+  </p>
+  <div class="math">
+    $$r \;=\; \frac{Z_2-Z_1}{Z_1+Z_2},\qquad t \;=\; \frac{2Z_2}{Z_1+Z_2},\qquad r^2 + \frac{Z_2}{Z_1}(1-t)^2 \;=\; 1.$$
+  </div>
+  <p>
+    A clamped end is the limit $Z_2 \to \infty$, giving $r = 1$ for <em>force</em>
+    but $r = -1$ for <em>velocity</em> &mdash; hence the velocity-wave inversion we
+    used in Chapter 3. A free end is the opposite limit $Z_2 \to 0$.
+  </p>
+
+  <h3>Multi-port Kelly&ndash;Lochbaum junction</h3>
+  <p>
+    When three or more waveguides meet at a point &mdash; a string splitting into a
+    bridge and a nut, or a tube branching into two tone-hole sections &mdash;
+    Kelly&nbsp;&amp;&nbsp;Lochbaum's scattering matrix (originally developed in 1962
+    for speech-tract models) generalises the two-port formula:
+  </p>
+  <div class="math">
+    $$p_{J} \;=\; \frac{2\sum_i Y_i\, p^{+}_i}{\sum_i Y_i},\qquad p^{-}_i \;=\; p_{J} - p^{+}_i,$$
+  </div>
+  <p>
+    where $Y_i = 1/Z_i$ is the port admittance and $p^{+}_i$ is the wave arriving at
+    the junction from port $i$.
+  </p>
+
+  <h3>Interactive: impedance mismatch</h3>
+  <p>
+    A lump travels from left to right through a junction where the impedance ratio
+    $Z_2/Z_1$ is adjustable. Watch the transmitted and reflected components in real
+    time and read the coefficients.
+  </p>
+  <div class="viz">
+    <canvas id="ch6scat" height="280" style="height:280px"></canvas>
+    <div class="controls">
+      <label>$Z_2/Z_1$ <input type="range" id="ch6zr" min="0.1" max="10" value="3" step="0.05"> <span id="ch6zrV">3.00</span></label>
+      <button id="ch6fire">Fire pulse</button>
+      <span id="ch6stat" style="font-size:.75rem;color:#8a8d9a;font-family:'Lucida Console',monospace"></span>
+    </div>
+    <div class="viz-caption">Dashed vertical = junction. Left line impedance $Z_1$ (thin), right line impedance $Z_2$ (thick).</div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 7 · BOWED STRINGS                                           -->
+<!-- ============================================================ -->
+<section id="ch7">
+  <h2><span class="num">7</span>Bowed Strings</h2>
+  <p class="lead">
+    Add a nonlinear friction table to the string at the bow contact point and you
+    have a bowed string. The table is the full physics: the horsehair sticks to the
+    string when their relative velocity is small, and slips over it when the relative
+    velocity is large. The transition is sharp, so the Helmholtz corner that
+    McIntyre&nbsp;&amp;&nbsp;Woodhouse made famous travels back and forth along the
+    string between the nut and the bridge.
+  </p>
+
+  <h3>The friction table</h3>
+  <p>
+    Let $v_{\mathrm{rel}}$ be the relative velocity between bow and string and
+    $F_b$ the bow force normal to the string. A commonly used model (Smith, after
+    McIntyre&nbsp;&amp;&nbsp;Woodhouse) writes
+  </p>
+  <div class="math">
+    $$F \;=\; F_b\,\mu(v_{\mathrm{rel}}),\qquad \mu(v) \;\approx\; \mu_d + (\mu_s-\mu_d)\,\exp\!\bigl(-|v|/v_0\bigr)\,\mathrm{sign}(v).$$
+  </div>
+  <p>
+    Here $\mu_s$ is the static coefficient (stick), $\mu_d$ is the dynamic
+    coefficient (slip), and $v_0$ sets the transition width. The table is tabulated
+    once and looked up every sample.
+  </p>
+
+  <h3>Helmholtz motion</h3>
+  <p>
+    Helmholtz's 1862 observation: a single "corner" in the string velocity waveform
+    travels back and forth along the string at speed $c$, reflecting off both ends.
+    The string alternates between a stick phase (bow drags the string with it) and a
+    slip phase (corner passes; bow cannot catch up). To first order, the duty cycle
+    of stick-vs-slip only depends on bow position; the period depends only on string
+    length. All other Raman modes &mdash; multi-corner, double-slip, etc. &mdash; are
+    unstable unless bow force is raised or lowered out of the Helmholtz regime.
+  </p>
+
+  <h3>Interactive: bow a string</h3>
+  <div class="viz">
+    <canvas id="ch7bow" height="320" style="height:320px"></canvas>
+    <div class="controls">
+      <label>Bow force <input type="range" id="ch7F" min="0.05" max="1.5" value="0.55" step="0.01"> <span id="ch7FV">0.55</span></label>
+      <label>Bow vel <input type="range" id="ch7V" min="0.05" max="1.5" value="0.4" step="0.01"> <span id="ch7VV">0.40</span></label>
+      <label>Bow pos <input type="range" id="ch7P" min="0.05" max="0.5" value="0.12" step="0.005"> <span id="ch7PV">0.12</span></label>
+      <label>Pitch (Hz) <input type="range" id="ch7f" min="110" max="660" value="196" step="1"> <span id="ch7fV">196</span></label>
+      <button id="ch7start">Bow 1 s &amp; listen</button>
+    </div>
+    <div class="viz-caption">Top: string-velocity profile (note the Helmholtz corner). Bottom: bridge output.</div>
+  </div>
+
+  <div class="note">
+    The bowed-string demo uses a simplified Cook/Smith friction table and a single
+    reflection lowpass at each end; it is stable but not fully physical. Real-time
+    orchestra-grade bowed strings (e.g. Serafin's Ph.D. thesis, 2004) add body
+    filters, torsional modes, and a finite-width bow contact.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 8 · WIND INSTRUMENTS                                        -->
+<!-- ============================================================ -->
+<section id="ch8">
+  <h2><span class="num">8</span>Wind Instruments</h2>
+  <p class="lead">
+    The reed of a clarinet is a pressure-controlled nonlinear valve sitting at one
+    end of a cylindrical waveguide. The air column is a pair of pressure delay
+    lines; the reed is a table whose input is the instantaneous pressure
+    difference across the reed and whose output is the resulting volume flow. Two
+    delay lines plus a reed table produces a clarinet that starts, sustains, and
+    overblows exactly as a real one does.
+  </p>
+
+  <h3>Cylindrical-bore waveguide</h3>
+  <p>
+    Pressure satisfies the same 1-D wave equation as the string (with $c$ now the
+    speed of sound in air, $\approx 343$ m/s). A cylindrical tube, closed at the
+    mouthpiece and open at the bell, gives odd-harmonic resonances at
+  </p>
+  <div class="math">
+    $$f_n \;=\; (2n-1)\frac{c}{4L},\qquad n = 1,2,3,\ldots$$
+  </div>
+  <p>
+    The closed end reflects pressure without inversion; the open end inverts it and
+    adds a small lowpass loss due to radiation into the room.
+  </p>
+
+  <h3>The reed table</h3>
+  <p>
+    Let $\Delta p = p_m - p$ be the pressure difference between the player's mouth
+    and the mouthpiece. Fletcher&nbsp;&amp;&nbsp;Rossing's clarinet reed is a
+    compliant valve: for small $\Delta p$ it is wide open; for moderate $\Delta p$ it
+    narrows; for $\Delta p$ larger than a critical value it slams shut. A tidy
+    analytical form (Smith, after McIntyre&nbsp;&amp;&nbsp;Woodhouse) is
+  </p>
+  <div class="math">
+    $$u(\Delta p) \;=\; A\,(\Delta p)\,\max\!\Bigl(0,\; 1 - \frac{\Delta p}{\Delta p_c}\Bigr)^2.$$
+  </div>
+  <p>
+    Wire this table into the reflection at one end of a cylindrical waveguide and
+    the system self-oscillates at the tube's first odd harmonic. Blow harder (raise
+    $p_m$) and it overblows to the third harmonic &mdash; the clarinet's famous
+    "register jump" of a twelfth.
+  </p>
+
+  <h3>Interactive: a playable clarinet</h3>
+  <div class="viz">
+    <canvas id="ch8cl" height="280" style="height:280px"></canvas>
+    <div class="controls">
+      <label>Breath <input type="range" id="ch8pm" min="0.0" max="1.5" value="0.6" step="0.01"> <span id="ch8pmV">0.60</span></label>
+      <label>Embouchure <input type="range" id="ch8em" min="0.4" max="1.2" value="0.8" step="0.01"> <span id="ch8emV">0.80</span></label>
+      <label>Pitch (Hz) <input type="range" id="ch8f" min="130" max="520" value="220" step="1"> <span id="ch8fV">220</span></label>
+      <button id="ch8blow">Blow 1.5 s</button>
+    </div>
+    <div class="viz-caption">Top: pressure at mouthpiece during sustain. Bottom: radiated bell output. Breath below threshold = silent; above = self-oscillating; very high = overblown.</div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 9 · FDTD                                                    -->
+<!-- ============================================================ -->
+<section id="ch9">
+  <h2><span class="num">9</span>Finite-Difference Time Domain (FDTD)</h2>
+  <p class="lead">
+    Digital waveguides are exact (to numerical precision) for strictly one-dimensional
+    lossless propagation. Once the geometry branches, bends, or becomes two- or
+    three-dimensional &mdash; a plate, a membrane, a room &mdash; the elegant
+    D'Alembert decomposition no longer suffices, and we go back to finite-difference
+    discretisation. FDTD is the generic tool for those problems. It replaces the
+    derivatives in the wave equation with centred differences and steps the solution
+    forward in time.
+  </p>
+
+  <h3>1-D stencil</h3>
+  <p>
+    Discretise $y_{tt} = c^2 y_{xx}$ with sample period $T = 1/f_s$ and spatial step
+    $X = c\,T / \lambda$, where $\lambda \le 1$ is the Courant number. The leap-frog
+    update is
+  </p>
+  <div class="math">
+    $$y^{n+1}_m \;=\; 2y^{n}_m - y^{n-1}_m + \lambda^2\bigl(y^{n}_{m+1} - 2y^{n}_m + y^{n}_{m-1}\bigr).$$
+  </div>
+  <p>
+    Setting $\lambda = 1$ (the so-called "magic time step") makes the stencil exact
+    for band-limited waves on an ideal 1-D string; the FDTD update and the
+    waveguide's two delay lines become algebraically equivalent.
+  </p>
+
+  <h3>2-D stencil for a square membrane</h3>
+  <p>
+    In two dimensions the Laplacian is a five-point stencil:
+  </p>
+  <div class="math">
+    $$y^{n+1}_{i,j} \;=\; 2y^{n}_{i,j} - y^{n-1}_{i,j} + \lambda^2\bigl(y^{n}_{i+1,j}+y^{n}_{i-1,j}+y^{n}_{i,j+1}+y^{n}_{i,j-1}-4y^{n}_{i,j}\bigr).$$
+  </div>
+  <p>
+    For stability the Courant condition becomes $\lambda \le 1/\sqrt{2}$. With
+    Dirichlet (clamped) boundary conditions the modes of a square $L\times L$
+    membrane are
+  </p>
+  <div class="math">
+    $$f_{p,q} \;=\; \frac{c}{2L}\sqrt{p^2 + q^2},\qquad p,q = 1,2,3,\ldots$$
+  </div>
+  <p>
+    Inharmonic, naturally &mdash; hence the characteristically drum-like, inharmonic
+    timbre of any struck two-dimensional object.
+  </p>
+
+  <h3>Interactive: tap a square membrane</h3>
+  <p>
+    Click anywhere on the canvas to inject a small Gaussian displacement. Watch the
+    waves propagate, reflect, and interfere into mode patterns. A virtual microphone
+    records the displacement at the red dot, and <em>Listen</em> plays it back.
+  </p>
+  <div class="viz">
+    <canvas id="ch9fdtd" height="340" style="height:340px"></canvas>
+    <div class="controls">
+      <label>Damping <input type="range" id="ch9dmp" min="0.0" max="0.01" value="0.001" step="0.0001"> <span id="ch9dmpV">0.001</span></label>
+      <label>Courant $\lambda$ <input type="range" id="ch9cr" min="0.3" max="0.707" value="0.65" step="0.005"> <span id="ch9crV">0.65</span></label>
+      <button id="ch9reset">Reset</button>
+      <button id="ch9listen">Listen to mic</button>
+      <span id="ch9stat" style="font-size:.75rem;color:#8a8d9a;font-family:'Lucida Console',monospace"></span>
+    </div>
+    <div class="viz-caption">Red dot = virtual microphone. Click anywhere to excite.</div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 10 · MODAL SYNTHESIS                                        -->
+<!-- ============================================================ -->
+<section id="ch10">
+  <h2><span class="num">10</span>Modal Synthesis</h2>
+  <p class="lead">
+    A linear physical object &mdash; a bar, a plate, a bell &mdash; radiates a sum of
+    damped sinusoids whose frequencies are its modes. If we know the modes, we can
+    skip the wave equation entirely and just drive an oscillator bank. This is
+    <em>modal synthesis</em>, the dual of waveguides: instead of propagating waves in
+    space, we superpose eigenmodes in time.
+  </p>
+
+  <h3>The modal model</h3>
+  <p>
+    For a linear, shift-invariant object, the response at observation point $x_o$ to
+    a force at excitation point $x_e$ is
+  </p>
+  <div class="math">
+    $$y(x_o,t) \;=\; \sum_k \phi_k(x_o)\,\phi_k(x_e)\,a_k\,e^{-\alpha_k t}\sin(\omega_k t),$$
+  </div>
+  <p>
+    where $\phi_k$ is the $k$-th mode shape, $\omega_k$ its angular frequency, and
+    $\alpha_k$ its damping. Each mode is one biquad resonator. A mode set of
+    sixteen oscillators is enough to model a marimba bar credibly; a few hundred
+    captures a church bell.
+  </p>
+
+  <h3>When to use modal vs waveguide</h3>
+  <table>
+    <thead><tr><th>Situation</th><th>Prefer</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>1-D propagation, low loss</td><td>Waveguide</td><td>Two delay lines, exact</td></tr>
+      <tr><td>Nonlinear interaction at one point</td><td>Waveguide</td><td>Table lookup at junction</td></tr>
+      <tr><td>Irregular 2-D/3-D geometry</td><td>Modal or FDTD</td><td>No travelling-wave decomposition</td></tr>
+      <tr><td>Few modes, cheap run-time</td><td>Modal</td><td>O(K) oscillators</td></tr>
+      <tr><td>Shape morphs continuously</td><td>FDTD</td><td>Modal bank would re-diagonalise</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Interactive: mode picker</h3>
+  <p>
+    Choose a preset (bar, plate, bell) or drag the sliders to sculpt your own mode
+    set. Each marker in the top panel is one mode; vertical position = amplitude,
+    horizontal position = frequency, marker radius = damping time.
+  </p>
+  <div class="viz">
+    <canvas id="ch10modal" height="300" style="height:300px"></canvas>
+    <div class="controls">
+      <label>Preset
+        <select id="ch10p">
+          <option value="bar" selected>Marimba bar</option>
+          <option value="plate">Metal plate</option>
+          <option value="bell">Church bell</option>
+          <option value="tube">Glass tube</option>
+        </select>
+      </label>
+      <label>Inharmonicity <input type="range" id="ch10inh" min="0" max="1" value="0.0" step="0.01"> <span id="ch10inhV">0.00</span></label>
+      <label>Decay scale <input type="range" id="ch10dec" min="0.3" max="3" value="1.0" step="0.05"> <span id="ch10decV">1.0</span></label>
+      <button id="ch10strike">Strike</button>
+    </div>
+    <div class="viz-caption">Top: mode map. Bottom: radiated waveform (0.8 s).</div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 11 · COMMUTED PIANO                                         -->
+<!-- ============================================================ -->
+<section id="ch11">
+  <h2><span class="num">11</span>Commuted Synthesis for Piano</h2>
+  <p class="lead">
+    The hammer&ndash;string&ndash;soundboard system of a piano is almost linear. The
+    hammer contact is briefly nonlinear but after that the string is (approximately)
+    linear, and the soundboard is always linear. Linear systems commute. Smith and
+    Van&nbsp;Duyne (1995) noticed that the expensive soundboard convolution can be
+    computed <em>once</em>, during excitation, and stashed inside a recorded impulse
+    response. At runtime all that remains is a single lossy waveguide per note.
+  </p>
+
+  <h3>The insight</h3>
+  <div class="math">
+    $$y(t) \;=\; h_{\text{hammer}}(t) * h_{\text{string}}(t) * h_{\text{board}}(t) \;=\; \bigl[h_{\text{hammer}}*h_{\text{board}}\bigr](t) * h_{\text{string}}(t).$$
+  </div>
+  <p>
+    Record the combined hammer&ndash;soundboard impulse response once, offline, and
+    you have a single pre-computed excitation that you feed into a waveguide at
+    runtime. The soundboard &mdash; a messy, inharmonic, radiating plate &mdash;
+    becomes part of the excitation, not part of the loop.
+  </p>
+
+  <h3>Interactive: a tiny piano</h3>
+  <p>
+    Twelve notes, each one a commuted waveguide: short noise-plus-tone excitation
+    $\rightarrow$ hammer shape $\rightarrow$ soundboard IR $\rightarrow$ string
+    waveguide. Click a key to strike.
+  </p>
+  <div class="viz">
+    <canvas id="ch11piano" height="260" style="height:260px"></canvas>
+    <div class="controls">
+      <label>Velocity <input type="range" id="ch11v" min="0.1" max="1.5" value="0.8" step="0.01"> <span id="ch11vV">0.80</span></label>
+      <label>Brightness <input type="range" id="ch11b" min="0.6" max="0.999" value="0.97" step="0.001"> <span id="ch11bV">0.97</span></label>
+      <button id="ch11arp">Arpeggio</button>
+    </div>
+    <div class="viz-caption">Click any key on the ivory row to play; <em>Arpeggio</em> plays a C-major ascending run.</div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 12 · ARTIFICIAL REVERB                                      -->
+<!-- ============================================================ -->
+<section id="ch12">
+  <h2><span class="num">12</span>Artificial Reverberation via Waveguide Networks</h2>
+  <p class="lead">
+    The same delay-line machinery that models a string models a room. A room is a
+    three-dimensional waveguide. Schroeder (1962) realised that a set of inter-
+    connected delays with carefully chosen lengths and feedback coefficients can
+    approximate the dense echo density and exponential decay of a real room &mdash;
+    the parametric reverberator was born. Fifty years of refinement culminated in
+    Jot&nbsp;&amp;&nbsp;Chaigne's (1991) Feedback Delay Network (FDN), now the
+    standard building block of every digital reverberator.
+  </p>
+
+  <h3>From Schroeder to FDN</h3>
+  <p>
+    A Feedback Delay Network with $N$ delays is described by
+  </p>
+  <div class="math">
+    $$\mathbf{s}[n+1] \;=\; \mathbf{A}\,\mathbf{s}[n-\mathbf{m}] \;+\; \mathbf{b}\,x[n],\qquad y[n] \;=\; \mathbf{c}^{\top}\mathbf{s}[n-\mathbf{m}] \;+\; d\,x[n],$$
+  </div>
+  <p>
+    where $\mathbf{m}$ is a vector of delay lengths in samples, $\mathbf{A}$ is a
+    unitary (norm-preserving) feedback matrix, and $\mathbf{b}, \mathbf{c}, d$ are
+    input/output/direct coefficients. Unitary $\mathbf{A}$ ensures the network is
+    energy-preserving in the lossless limit; the actual decay is introduced by a
+    per-line lowpass on each $\mathbf{s}_i$.
+  </p>
+
+  <h3>Interactive: small FDN reverb</h3>
+  <p>
+    Four delay lines, a 4&times;4 Hadamard feedback matrix, and a one-pole lowpass
+    on each line. Adjust the decay and colour and send a short click through it.
+  </p>
+  <div class="viz">
+    <canvas id="ch12fdn" height="240" style="height:240px"></canvas>
+    <div class="controls">
+      <label>RT60 (s) <input type="range" id="ch12rt" min="0.3" max="6" value="2.0" step="0.05"> <span id="ch12rtV">2.0</span></label>
+      <label>Colour <input type="range" id="ch12col" min="0.1" max="0.99" value="0.6" step="0.01"> <span id="ch12colV">0.60</span></label>
+      <label>Size <input type="range" id="ch12sz" min="0.3" max="2.5" value="1.0" step="0.05"> <span id="ch12szV">1.0</span></label>
+      <button id="ch12imp">Click impulse</button>
+      <button id="ch12snare">Snare hit</button>
+    </div>
+    <div class="viz-caption">Impulse response (left) and wet signal (right) of a 4-line FDN.</div>
+  </div>
+  <div class="xref">
+    <a href="https://github.com/BrendanJamesLynskey/Room_Acoustics_Reverb" target="_blank">Companion: Room Acoustics &amp; Reverb</a>
+    <a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Delay_Networks.html" target="_blank">PASP: FDNs</a>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CH 13 · LEGACY                                                 -->
+<!-- ============================================================ -->
+<section id="ch13">
+  <h2><span class="num">13</span>Legacy and Continuing Impact</h2>
+  <p class="lead">
+    Smith's digital-waveguide framework shipped first inside the Yamaha VL1 (1994)
+    and is now the mathematical engine under every physically-modelled synthesiser,
+    including Pianoteq, Modalys, Arturia's CMI V physical-string mode, and the
+    physical-modelling patches inside every contemporary modular platform. Since
+    2020 the waveguide has also become a differentiable layer: a neural network
+    learns the excitation and the loop filter directly from audio, preserving the
+    physical prior while absorbing what the physics misses.
+  </p>
+  <h3>Where you'll find it today</h3>
+  <ul style="list-style:disc;padding-left:1.4em;margin-bottom:1.2em">
+    <li><strong>Yamaha VL1, VL7, VL70-m, VP1, EX5 (1994&ndash;1999):</strong> two-voice
+      monophonic physical modelling synthesisers implementing Smith's patented
+      waveguide models for strings, reeds, and brass.</li>
+    <li><strong>Pianoteq (Modartt, 2006&ndash;present):</strong> the first widely-sold
+      physically-modelled piano. Now covers harpsichord, celesta, guitars, steel
+      pans, and tuned percussion.</li>
+    <li><strong>Modalys (IRCAM):</strong> modal synthesis for research and scoring,
+      used heavily in contemporary classical practice.</li>
+    <li><strong>Arturia CMI V, Korg Wavestate, Roland VariOS:</strong> waveguide and
+      FDTD oscillators appearing as components inside larger soft-synths.</li>
+    <li><strong>DDSP and neural physical models (2020&ndash;):</strong> Engel et al.'s
+      differentiable signal processing framework opens the door to waveguide and
+      modal blocks being dropped into a trainable loss graph.</li>
+  </ul>
+  <h3>Where to go next</h3>
+  <div class="xref">
+    <a href="https://github.com/BrendanJamesLynskey/Synth_Physical_Modelling" target="_blank">Synth: Physical Modelling</a>
+    <a href="https://github.com/BrendanJamesLynskey/Room_Acoustics_Reverb" target="_blank">Room Acoustics &amp; Reverb</a>
+    <a href="https://github.com/BrendanJamesLynskey/DDSP_Differentiable_DSP" target="_blank">DDSP: Differentiable DSP</a>
+    <a href="https://github.com/BrendanJamesLynskey/Spatial_Audio_Ambisonics" target="_blank">Spatial Audio &amp; Ambisonics</a>
+    <a href="https://github.com/BrendanJamesLynskey/STFT_for_Sound" target="_blank">STFT for Sound</a>
+    <a href="https://github.com/BrendanJamesLynskey/Companion_JOS_Mathematics_of_the_DFT" target="_blank">Companion: Mathematics of the DFT</a>
+    <a href="https://github.com/BrendanJamesLynskey/Companion_JOS_Introduction_to_Digital_Filters" target="_blank">Companion: Introduction to Digital Filters</a>
+    <a href="https://github.com/BrendanJamesLynskey/Companion_JOS_Spectral_Audio_Signal_Processing" target="_blank">Companion: Spectral Audio Signal Processing</a>
+    <a href="https://github.com/BrendanJamesLynskey/Companion_JOS_Audio_Signal_Processing_in_Faust" target="_blank">Companion: Audio SP in Faust</a>
+  </div>
+
+  <div class="references">
+    <h3>Key References</h3>
+    <ol>
+      <li>Helmholtz, H. von (1862). <em>Die Lehre von den Tonempfindungen.</em> Braunschweig: Vieweg.</li>
+      <li>Raman, C. V. (1918). <em>On the Mechanical Theory of the Vibrations of Bowed Strings.</em> Bulletin of the Indian Association for the Cultivation of Science, 15, 1&ndash;158.</li>
+      <li>Hiller, L. &amp; Ruiz, P. (1971). <em>Synthesizing Musical Sounds by Solving the Wave Equation for Vibrating Objects.</em> Journal of the Audio Engineering Society, 19(6,7).</li>
+      <li>McIntyre, M. E. &amp; Woodhouse, J. (1979). <em>On the fundamentals of bowed-string dynamics.</em> Acustica 43, 93&ndash;108.</li>
+      <li>Karplus, K. &amp; Strong, A. (1983). <em>Digital Synthesis of Plucked-String and Drum Timbres.</em> Computer Music Journal 7(2), 43&ndash;55.</li>
+      <li>Jaffe, D. A. &amp; Smith, J. O. (1983). <em>Extensions of the Karplus&ndash;Strong Plucked-String Algorithm.</em> Computer Music Journal 7(2), 56&ndash;69.</li>
+      <li>Smith, J. O. (1987). <em>Music Applications of Digital Waveguides.</em> CCRMA Technical Report STAN-M-39.</li>
+      <li>Smith, J. O. (1992). <em>Physical Modeling Using Digital Waveguides.</em> Computer Music Journal 16(4), 74&ndash;91.</li>
+      <li>Cadoz, C., Luciani, A. &amp; Florens, J.-L. (1984). <em>Responsive Input Devices and Sound Synthesis by Simulation of Instrumental Mechanisms: The Cordis System.</em> Computer Music Journal 8(3), 60&ndash;73.</li>
+      <li>Adrien, J.-M. (1991). <em>The Missing Link: Modal Synthesis.</em> In De Poli et al., eds., <em>Representations of Musical Signals</em>, MIT Press, 269&ndash;297.</li>
+      <li>Smith, J. O. &amp; Van Duyne, S. A. (1995). <em>Commuted Piano Synthesis.</em> Proc. ICMC, 319&ndash;326.</li>
+      <li>Smith, J. O. (2010). <em>Physical Audio Signal Processing.</em> W3K Publishing. <a href="https://ccrma.stanford.edu/~jos/pasp/" target="_blank">ccrma.stanford.edu/~jos/pasp</a></li>
+      <li>Jot, J.-M. &amp; Chaigne, A. (1991). <em>Digital Delay Networks for Designing Artificial Reverberators.</em> Proc. AES 90th Convention.</li>
+      <li>Schroeder, M. R. (1962). <em>Natural Sounding Artificial Reverberation.</em> J. Audio Engineering Society 10(3), 219&ndash;223.</li>
+      <li>Kelly, J. L. &amp; Lochbaum, C. C. (1962). <em>Speech Synthesis.</em> Proc. 4th Int. Congress on Acoustics, G42, 1&ndash;4.</li>
+      <li>Bilbao, S. (2009). <em>Numerical Sound Synthesis: Finite Difference Schemes and Simulation in Musical Acoustics.</em> Wiley.</li>
+      <li>Serafin, S. (2004). <em>The Sound of Friction: Real-Time Models, Playability and Musical Applications.</em> Ph.D. thesis, Stanford University.</li>
+      <li>Engel, J., Hantrakul, L., Gu, C. &amp; Roberts, A. (2020). <em>DDSP: Differentiable Digital Signal Processing.</em> ICLR 2020.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- CONTENT:END -->
+
+<footer>
+  <p>Interactive companion to Julius O. Smith III's <a href="https://ccrma.stanford.edu/~jos/pasp/" target="_blank">Physical Audio Signal Processing</a>. Every demo is hand-written JavaScript and Web Audio; no frameworks; KaTeX via jsdelivr is the only third-party asset. MIT licence.</p>
+</footer>
+
+<!-- ============================================================ -->
+<!-- SCRIPT                                                         -->
+<!-- ============================================================ -->
+<script>
+(function(){
+"use strict";
+
+// ── Utilities ──────────────────────────────────────────────────
+const DPR = window.devicePixelRatio || 1;
+function setupCanvas(canvas, w, h) {
+  canvas.width = Math.round(w * DPR);
+  canvas.height = Math.round(h * DPR);
+  canvas.style.height = h + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);
+  return ctx;
+}
+function fitWidth(canvas) {
+  const r = canvas.parentElement.getBoundingClientRect();
+  return Math.max(320, Math.floor(r.width));
+}
+
+// ── Audio ─────────────────────────────────────────────────────
+let audioCtx = null;
+function getAudioCtx(){if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx;}
+function playBuffer(samples, sr){
+  const ctx = getAudioCtx();
+  if (ctx.state==='suspended') ctx.resume();
+  const buf = ctx.createBuffer(1, samples.length, sr);
+  buf.getChannelData(0).set(samples);
+  const src = ctx.createBufferSource();
+  src.buffer = buf; src.connect(ctx.destination); src.start();
+  return src;
+}
+function applyFade(buf, n){
+  const N = buf.length;
+  const k = Math.min(n, N>>1);
+  for(let i=0;i<k;i++){ buf[i]*=i/k; buf[N-1-i]*=i/k; }
+  return buf;
+}
+
+// Expose
+const PASP = window.PASP = { setupCanvas, fitWidth, getAudioCtx, playBuffer, applyFade };
+
+// ── Hero animation: travelling wave bouncing between fixed ends ──
+(function heroAnim(){
+  const c = document.getElementById('heroCanvas');
+  if(!c) return;
+  const hostW = () => Math.max(320, document.documentElement.clientWidth);
+  const hostH = () => Math.max(400, Math.min(window.innerHeight, 900));
+  let ctx = setupCanvas(c, hostW(), hostH());
+  let W = hostW(), H = hostH();
+  const N = 360;                 // spatial samples
+  let yR = new Float32Array(N);  // right-going
+  let yL = new Float32Array(N);  // left-going
+  // Initial lump
+  function pulse(){
+    for(let i=0;i<N;i++){
+      const x = (i - N*0.3);
+      const e = Math.exp(-(x*x)/40);
+      yR[i] = 0.9*e;
+      yL[i] = 0.0;
+    }
+  }
+  pulse();
+  let last = performance.now();
+  let hue = 0;
+  function step(){
+    // Shift right-going right, left-going left; reflect at boundaries (inverted for fixed end)
+    const nR = new Float32Array(N), nL = new Float32Array(N);
+    for(let i=1;i<N;i++) nR[i] = yR[i-1];
+    for(let i=0;i<N-1;i++) nL[i] = yL[i+1];
+    // reflections: fixed-end
+    nR[0] = -yL[0];
+    nL[N-1] = -yR[N-1];
+    yR = nR; yL = nL;
+  }
+  function frame(now){
+    const dt = Math.min(0.05,(now-last)/1000); last = now;
+    W = hostW(); H = hostH();
+    if(c.width !== Math.round(W*DPR) || c.height !== Math.round(H*DPR)){
+      ctx = setupCanvas(c, W, H);
+    }
+    // 4 physics steps per frame
+    for(let k=0;k<4;k++) step();
+    // render
+    ctx.fillStyle = 'rgba(10,11,15,0.18)'; ctx.fillRect(0,0,W,H);
+    // baseline
+    ctx.strokeStyle = 'rgba(74,157,232,0.18)';
+    ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0,H*0.5); ctx.lineTo(W,H*0.5); ctx.stroke();
+    // waveform y = yR + yL
+    const yamp = H*0.22;
+    ctx.strokeStyle = 'rgba(232,164,74,0.95)';
+    ctx.lineWidth = 2; ctx.beginPath();
+    for(let i=0;i<N;i++){
+      const x = i/(N-1)*W;
+      const y = H*0.5 - (yR[i]+yL[i])*yamp;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // components faint
+    ctx.strokeStyle='rgba(92,232,154,0.35)'; ctx.lineWidth=1; ctx.beginPath();
+    for(let i=0;i<N;i++){
+      const x=i/(N-1)*W;
+      const y=H*0.5 - yR[i]*yamp;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.strokeStyle='rgba(176,106,232,0.35)'; ctx.beginPath();
+    for(let i=0;i<N;i++){
+      const x=i/(N-1)*W;
+      const y=H*0.5 - yL[i]*yamp;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // endpoint markers (fixed ends)
+    ctx.fillStyle='rgba(232,90,122,0.9)';
+    ctx.fillRect(0, H*0.5-6, 4, 12);
+    ctx.fillRect(W-4, H*0.5-6, 4, 12);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  window.addEventListener('resize', ()=>{ ctx = setupCanvas(c, hostW(), hostH()); });
+})();
+
+// Active TOC highlight
+(function toc(){
+  const links = document.querySelectorAll('nav#toc a');
+  const sections = Array.from(links).map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function onScroll(){
+    const y = window.scrollY + 100;
+    let k = 0;
+    for(let i=0;i<sections.length;i++){ if(sections[i].offsetTop <= y) k = i; }
+    links.forEach(a=>a.classList.remove('active'));
+    if(links[k]) links[k].classList.add('active');
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+
+// Chapter demos will attach themselves below, appended via Edit calls
+window.__PASP_DEMOS__ = window.__PASP_DEMOS__ || [];
+function registerDemo(fn){ window.__PASP_DEMOS__.push(fn); }
+window.registerDemo = registerDemo;
+
+// demos defined below register into this array; invoked after DOMContentLoaded
+// ── CH 2 timeline spring-mass-damper animation ────────────────
+registerDemo(function ch2Timeline(){
+  const c = document.getElementById('timelineViz');
+  if(!c) return;
+  const H = 240;
+  let W = fitWidth(c);
+  let ctx = setupCanvas(c, W, H);
+  window.addEventListener('resize', ()=>{ W = fitWidth(c); ctx = setupCanvas(c, W, H); });
+  const decades = [
+    {y:1862,c:'#e85a7a',lbl:'Helmholtz'},
+    {y:1918,c:'#e85a7a',lbl:'Raman'},
+    {y:1971,c:'#b06ae8',lbl:'Hiller/Ruiz'},
+    {y:1979,c:'#b06ae8',lbl:'McIntyre/Woodhouse'},
+    {y:1983,c:'#e8a44a',lbl:'Karplus/Strong'},
+    {y:1985,c:'#e8a44a',lbl:'Cordis-Anima'},
+    {y:1987,c:'#e8a44a',lbl:'Waveguide'},
+    {y:1989,c:'#4a9de8',lbl:'Modalys'},
+    {y:1994,c:'#4a9de8',lbl:'Yamaha VL1'},
+    {y:1995,c:'#4a9de8',lbl:'Commuted piano'},
+    {y:2006,c:'#5ce89a',lbl:'Pianoteq'},
+    {y:2020,c:'#5ce89a',lbl:'DDSP'},
+  ];
+  let t0 = performance.now();
+  function draw(){
+    const t = (performance.now()-t0)/1000;
+    ctx.fillStyle='#12141c'; ctx.fillRect(0,0,W,H);
+    const cx = W*0.5, cy = H*0.55;
+    // concentric rings
+    for(let r=30;r<Math.min(W,H)*0.5;r+=26){
+      ctx.strokeStyle='rgba(74,157,232,0.06)'; ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
+    }
+    // center year tick
+    ctx.fillStyle='#8a8d9a'; ctx.font="10px 'Lucida Console',monospace";
+    ctx.textAlign='center';
+    for(let i=0;i<decades.length;i++){
+      const d = decades[i];
+      const age = (2026 - d.y)/166;
+      const r = 40 + age*Math.min(W,H)*0.38;
+      const theta = (i/decades.length)*2*Math.PI + t*0.12 + Math.sin(t*0.6 + i)*0.05;
+      const x = cx + r*Math.cos(theta);
+      const y = cy + r*Math.sin(theta)*0.55;
+      ctx.fillStyle = d.c;
+      ctx.beginPath(); ctx.arc(x,y,5,0,2*Math.PI); ctx.fill();
+      ctx.fillStyle='#d4d6e0';
+      ctx.fillText(d.lbl + ' ' + d.y, x, y-10);
+    }
+    ctx.fillStyle='#e8a44a'; ctx.font="11px 'Lucida Console',monospace";
+    ctx.fillText('160 years of synthetic instruments', cx, 18);
+    requestAnimationFrame(draw);
+  }
+  draw();
+});
+
+// ── CH 3 wave-equation bouncing lump ──────────────────────────
+registerDemo(function ch3Demo(){
+  const c = document.getElementById('ch3wave');
+  if(!c) return;
+  const H = 320;
+  let W = fitWidth(c);
+  let ctx = setupCanvas(c, W, H);
+  window.addEventListener('resize', ()=>{ W = fitWidth(c); ctx = setupCanvas(c, W, H); });
+  const bcSel = document.getElementById('ch3bc');
+  const dmpIn = document.getElementById('ch3damp'); const dmpV = document.getElementById('ch3dampV');
+  const posIn = document.getElementById('ch3pos');  const posV = document.getElementById('ch3posV');
+  const pluckBtn = document.getElementById('ch3pluck');
+  const playBtn = document.getElementById('ch3play');
+  const N = 400;
+  let yR = new Float32Array(N);
+  let yL = new Float32Array(N);
+  function pluck(){
+    const p = parseFloat(posIn.value);
+    const cen = Math.floor(p*N);
+    for(let i=0;i<N;i++){
+      const d = i - cen;
+      const e = Math.exp(-(d*d)/60);
+      yR[i] = 0.5*e;
+      yL[i] = 0.5*e;
+    }
+  }
+  function step(){
+    const dmp = 1 - parseFloat(dmpIn.value);
+    const nR = new Float32Array(N), nL = new Float32Array(N);
+    for(let i=1;i<N;i++) nR[i] = yR[i-1]*dmp;
+    for(let i=0;i<N-1;i++) nL[i] = yL[i+1]*dmp;
+    // Left end always fixed
+    nR[0] = -yL[0]*dmp;
+    if(bcSel.value==='fixed') nL[N-1] = -yR[N-1]*dmp;
+    else nL[N-1] = +yR[N-1]*dmp;
+    yR = nR; yL = nL;
+  }
+  function draw(){
+    dmpV.textContent = parseFloat(dmpIn.value).toFixed(4);
+    posV.textContent = parseFloat(posIn.value).toFixed(2);
+    for(let k=0;k<2;k++) step();
+    ctx.fillStyle='#12141c'; ctx.fillRect(0,0,W,H);
+    // axis
+    ctx.strokeStyle='rgba(74,157,232,0.18)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,H*0.5); ctx.lineTo(W,H*0.5); ctx.stroke();
+    // endpoints
+    ctx.fillStyle='#e85a7a'; ctx.fillRect(0,H*0.5-8,3,16);
+    if(bcSel.value==='fixed') ctx.fillRect(W-3,H*0.5-8,3,16);
+    else { ctx.fillStyle='#5ce89a'; ctx.fillRect(W-3,H*0.5-10,3,20); }
+    // components
+    const yAmp = H*0.25;
+    function stroke(arr, col){
+      ctx.strokeStyle=col; ctx.lineWidth=1; ctx.beginPath();
+      for(let i=0;i<N;i++){
+        const x = i/(N-1)*W;
+        const y = H*0.5 - arr[i]*yAmp;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    }
+    stroke(yR, 'rgba(92,232,154,0.5)');
+    stroke(yL, 'rgba(176,106,232,0.5)');
+    // total
+    ctx.strokeStyle='#e8a44a'; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<N;i++){
+      const x = i/(N-1)*W;
+      const y = H*0.5 - (yR[i]+yL[i])*yAmp;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // legend
+    ctx.fillStyle='#8a8d9a'; ctx.font="11px 'Lucida Console',monospace";
+    ctx.textAlign='left';
+    ctx.fillText('orange = y(x,t)  green = y+  purple = y-', 8, 16);
+    requestAnimationFrame(draw);
+  }
+  pluckBtn.addEventListener('click', pluck);
+  [dmpIn,posIn].forEach(el=>el.addEventListener('input', ()=>{}));
+  pluck();
+  draw();
+  // listen: record a bridge-point sample for 1s, play back
+  playBtn.addEventListener('click', ()=>{
+    const sr = 22050;
+    const buf = new Float32Array(sr);
+    // Simple synth for listening: bounce the same lump at audio rate, read bridge
+    let aR = new Float32Array(N), aL = new Float32Array(N);
+    const p = parseFloat(posIn.value);
+    const cen = Math.floor(p*N);
+    for(let i=0;i<N;i++){
+      const d = i - cen;
+      const e = Math.exp(-(d*d)/60);
+      aR[i] = 0.5*e; aL[i] = 0.5*e;
+    }
+    const dmp = 1 - parseFloat(dmpIn.value);
+    for(let n=0;n<sr;n++){
+      const nR = new Float32Array(N), nL = new Float32Array(N);
+      for(let i=1;i<N;i++) nR[i] = aR[i-1]*dmp;
+      for(let i=0;i<N-1;i++) nL[i] = aL[i+1]*dmp;
+      nR[0] = -aL[0]*dmp;
+      if(bcSel.value==='fixed') nL[N-1] = -aR[N-1]*dmp;
+      else nL[N-1] = +aR[N-1]*dmp;
+      aR = nR; aL = nL;
+      buf[n] = (aR[N-2]+aL[N-2]) * 0.8;  // read near right end (bridge)
+    }
+    applyFade(buf, 200);
+    playBuffer(buf, sr);
+  });
+});
+
+// ── CH 4 waveguide pluck + audio ──────────────────────────────
+registerDemo(function ch4Demo(){
+  const c = document.getElementById('ch4wg');
+  if(!c) return;
+  const H = 300;
+  let W = fitWidth(c);
+  let ctx = setupCanvas(c, W, H);
+  window.addEventListener('resize', ()=>{ W = fitWidth(c); ctx = setupCanvas(c, W, H); });
+  const fIn = document.getElementById('ch4f'); const fV = document.getElementById('ch4fV');
+  const dIn = document.getElementById('ch4dec'); const dV = document.getElementById('ch4decV');
+  const bIn = document.getElementById('ch4br'); const bV = document.getElementById('ch4brV');
+  const pIn = document.getElementById('ch4pp'); const pV = document.getElementById('ch4ppV');
+  const pluck = document.getElementById('ch4pluck');
+  let lastOut = new Float32Array(11025);
+  let lastR = new Float32Array(200), lastL = new Float32Array(200);
+  function render(){
+    fV.textContent = fIn.value;
+    dV.textContent = parseFloat(dIn.value).toFixed(1);
+    bV.textContent = parseFloat(bIn.value).toFixed(3);
+    pV.textContent = parseFloat(pIn.value).toFixed(2);
+    ctx.fillStyle='#12141c'; ctx.fillRect(0,0,W,H);
+    // top: delay line snapshot
+    const topH = H*0.55;
+    ctx.fillStyle='#8a8d9a'; ctx.font="10px 'Lucida Console',monospace"; ctx.textAlign='left';
+    ctx.fillText('delay lines (green=right-going, purple=left-going)', 8, 14);
+    ctx.strokeStyle='rgba(74,157,232,0.18)'; ctx.beginPath(); ctx.moveTo(0,topH*0.5+10); ctx.lineTo(W,topH*0.5+10); ctx.stroke();
+    const N = lastR.length;
+    ctx.strokeStyle='rgba(92,232,154,0.85)'; ctx.lineWidth=1.5; ctx.beginPath();
+    for(let i=0;i<N;i++){ const x=i/(N-1)*W; const y=topH*0.5+10 - lastR[i]*topH*0.35; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }
+    ctx.stroke();
+    ctx.strokeStyle='rgba(176,106,232,0.85)'; ctx.beginPath();
+    for(let i=0;i<N;i++){ const x=i/(N-1)*W; const y=topH*0.5+10 - lastL[i]*topH*0.35; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }
+    ctx.stroke();
+    // bottom: output
+    ctx.fillStyle='#8a8d9a'; ctx.fillText('bridge output (last 0.5 s)', 8, topH+18);
+    ctx.strokeStyle='#e8a44a'; ctx.lineWidth=1; ctx.beginPath();
+    const M = lastOut.length;
+    for(let x=0;x<W;x++){
+      const i = Math.floor(x/W*M);
+      const y = topH + 30 + (H-topH-40)*0.5 - lastOut[i]*(H-topH-40)*0.45;
+      if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  function doPluck(){
+    const sr = 22050;
+    const f = parseFloat(fIn.value);
+    const L = Math.max(8, Math.floor(sr/f));
+    const dec = parseFloat(dIn.value);
+    const br = parseFloat(bIn.value);
+    // per-sample loop gain g from RT60: g^(sr/L * dec) = 1/1000 => g = 10^(-3 L / (sr*dec))
+    const g = Math.pow(10, -3*L/(sr*dec));
+    // reflection filter: one-pole lowpass  H(z) = (1-br)/(1-br z^-1)? We want simple one-pole LPF tunable:
+    // use y[n] = (1-a)*x[n] + a*y[n-1], with a = br
+    const a = br;
+    // delay lines
+    const dr = new Float32Array(L);  // right-going in upper line
+    const dl = new Float32Array(L);  // left-going in lower line
+    // initial pluck: triangular displacement split equally
+    const pp = parseFloat(pIn.value);
+    const pk = Math.max(1, Math.floor(pp*L));
+    for(let i=0;i<L;i++){
+      const d = (i<pk) ? i/pk : (L-i)/(L-pk);
+      dr[i] = 0.5*d;
+      dl[i] = 0.5*d;
+    }
+    // pick-position comb filter on output: subtract delayed by pk
+    const pickComb = new Float32Array(pk+2);
+    let pcI = 0;
+    // simulate
+    const dur = Math.floor(sr*1.2);
+    const out = new Float32Array(dur);
+    let stateR = 0, stateL = 0;
+    // pointers
+    let pR = 0, pL = 0;
+    const outSamples = 11025; // 0.5 s
+    let snapR = null, snapL = null;
+    for(let n=0;n<dur;n++){
+      // Read ends
+      const rOut = dr[pR];        // arriving at right end
+      const lOut = dl[pL];        // arriving at left end
+      // reflection at right end: lowpass + inversion + gain
+      stateR = (1-a)*rOut + a*stateR;
+      const rRefl = -stateR*g;
+      // reflection at left end: pure inversion + gain
+      stateL = (1-a)*lOut + a*stateL;
+      const lRefl = -stateL*g;
+      // Advance pointers
+      dr[pR] = lRefl;     // write new left-end reflection into the "next" slot of right-going line
+      dl[pL] = rRefl;
+      pR = (pR+1)%L;
+      pL = (pL+1)%L;
+      // bridge output
+      const pickIdx = Math.floor(pp*L);
+      const bridge = dr[(pR+pickIdx)%L] + dl[(pL+pickIdx)%L];
+      out[n] = bridge*0.7;
+      // snapshot midway
+      if(n===Math.floor(dur*0.15)){
+        snapR = new Float32Array(dr);
+        snapL = new Float32Array(dl);
+      }
+    }
+    // snapshots for display
+    if(snapR){
+      lastR = new Float32Array(200);
+      lastL = new Float32Array(200);
+      for(let i=0;i<200;i++){
+        const idx = Math.floor(i/200*L);
+        lastR[i] = snapR[idx]; lastL[i] = snapL[idx];
+      }
+    }
+    lastOut = out.slice(Math.max(0,dur-outSamples));
+    applyFade(out, 200);
+    render();
+    playBuffer(out, sr);
+  }
+  [fIn,dIn,bIn,pIn].forEach(el=>el.addEventListener('input', render));
+  pluck.addEventListener('click', doPluck);
+  render();
+});
+
+// ── CH 5 Karplus–Strong ───────────────────────────────────────
+registerDemo(function ch5Demo(){
+  const c = document.getElementById('ch5ks');
+  if(!c) return;
+  const H = 280;
+  let W = fitWidth(c);
+  let ctx = setupCanvas(c, W, H);
+  window.addEventListener('resize', ()=>{ W = fitWidth(c); ctx = setupCanvas(c, W, H); });
+  const fIn = document.getElementById('ch5f'); const fV = document.getElementById('ch5fV');
+  const dIn = document.getElementById('ch5d'); const dV = document.getElementById('ch5dV');
+  const pIn = document.getElementById('ch5p'); const pV = document.getElementById('ch5pV');
+  const exSel = document.getElementById('ch5ex');
+  const btn = document.getElementById('ch5pluck');
+  let lastLine = new Float32Array(200);
+  let lastOut = new Float32Array(11025);
+  function draw(){
+    fV.textContent = fIn.value;
+    dV.textContent = parseFloat(dIn.value).toFixed(3);
+    pV.textContent = parseFloat(pIn.value).toFixed(2);
+    ctx.fillStyle='#12141c'; ctx.fillRect(0,0,W,H);
+    const topH = H*0.45;
+    ctx.fillStyle='#8a8d9a'; ctx.font="10px 'Lucida Console',monospace"; ctx.textAlign='left';
+    ctx.fillText('delay line snapshot', 8, 14);
+    ctx.strokeStyle='#e8a44a'; ctx.lineWidth=1.3; ctx.beginPath();
+    for(let i=0;i<lastLine.length;i++){
+      const x = i/(lastLine.length-1)*W;
+      const y = topH*0.5 + 20 - lastLine[i]*topH*0.35;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#8a8d9a'; ctx.fillText('radiated output (last 0.5 s)', 8, topH+36);
+    ctx.strokeStyle='#4a9de8'; ctx.lineWidth=1; ctx.beginPath();
+    for(let x=0;x<W;x++){
+      const i = Math.floor(x/W*lastOut.length);
+      const y = topH+52 + (H-topH-70)*0.5 - lastOut[i]*(H-topH-70)*0.45;
+      if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  function pluck(){
+    const sr = 22050;
+    const f = parseFloat(fIn.value);
+    const N = Math.max(8, Math.round(sr/f));
+    const g = parseFloat(dIn.value);
+    const pp = parseFloat(pIn.value);
+    const pk = Math.max(1, Math.floor(pp*N));
+    const buf = new Float32Array(N);
+    const ex = exSel.value;
+    if(ex==='noise'){
+      for(let i=0;i<N;i++) buf[i] = 2*Math.random()-1;
+    } else if(ex==='impulse'){
+      buf[0] = 1;
+    } else {
+      // rough: lowpassed noise
+      let y=0;
+      for(let i=0;i<N;i++){ y = 0.7*y + 0.3*(2*Math.random()-1); buf[i] = y; }
+    }
+    // pick-position comb: subtract delayed by pk
+    const ex2 = new Float32Array(N);
+    for(let i=0;i<N;i++){
+      const d = (i - pk + N)%N;
+      ex2[i] = buf[i] - buf[d]*0.95;
+    }
+    // run KS
+    const dur = Math.floor(sr*1.2);
+    const line = new Float32Array(N);
+    for(let i=0;i<N;i++) line[i] = ex2[i];
+    const out = new Float32Array(dur);
+    let ptr = 0;
+    let prev = line[N-1];
+    let snap = null;
+    for(let n=0;n<dur;n++){
+      const cur = line[ptr];
+      const newVal = g * 0.5*(cur + prev);
+      out[n] = cur;
+      line[ptr] = newVal;
+      prev = cur;
+      ptr = (ptr+1)%N;
+      if(n===Math.floor(dur*0.1)) snap = new Float32Array(line);
+    }
+    if(snap){
+      lastLine = new Float32Array(200);
+      for(let i=0;i<200;i++) lastLine[i] = snap[Math.floor(i/200*N)];
+    }
+    lastOut = out.slice(Math.max(0,dur-11025));
+    applyFade(out, 128);
+    draw();
+    playBuffer(out, sr);
+  }
+  [fIn,dIn,pIn].forEach(el=>el.addEventListener('input', draw));
+  btn.addEventListener('click', pluck);
+  draw();
+});
+
+// ── CH 6 scattering at impedance junction ─────────────────────
+registerDemo(function ch6Demo(){
+  const c = document.getElementById('ch6scat');
+  if(!c) return;
+  const H = 280;
+  let W = fitWidth(c);
+  let ctx = setupCanvas(c, W, H);
+  window.addEventListener('resize', ()=>{ W = fitWidth(c); ctx = setupCanvas(c, W, H); });
+  const zIn = document.getElementById('ch6zr'); const zV = document.getElementById('ch6zrV');
+  const stat = document.getElementById('ch6stat');
+  const btn = document.getElementById('ch6fire');
+  const N1 = 200, N2 = 200;
+  let a1p = new Float32Array(N1), a1m = new Float32Array(N1);
+  let a2p = new Float32Array(N2), a2m = new Float32Array(N2);
+  function firePulse(){
+    a1p.fill(0); a1m.fill(0); a2p.fill(0); a2m.fill(0);
+    for(let i=0;i<N1;i++){
+      const d = i-40;
+      a1p[i] = 0.8*Math.exp(-(d*d)/40);
+    }
+  }
+  function step(){
+    const Z1 = 1, Z2 = parseFloat(zIn.value);
+    const r = (Z2-Z1)/(Z1+Z2);
+    const t = 2*Z2/(Z1+Z2);
+    // Shift right-going waves right, left-going left
+    const n1p = new Float32Array(N1), n1m = new Float32Array(N1);
+    const n2p = new Float32Array(N2), n2m = new Float32Array(N2);
+    for(let i=1;i<N1;i++) n1p[i] = a1p[i-1];
+    for(let i=0;i<N1-1;i++) n1m[i] = a1m[i+1];
+    for(let i=1;i<N2;i++) n2p[i] = a2p[i-1];
+    for(let i=0;i<N2-1;i++) n2m[i] = a2m[i+1];
+    // At junction: incoming a1p at the far right of line1; incoming a2m at far left of line2
+    const in1 = a1p[N1-1];
+    const in2 = a2m[0];
+    // Fresnel scattering (from a two-port): right-going out to line2 = t*in1 + (1-t)*in2? For energy-conserving:
+    // transmitted = (2 Y2)/(Y1+Y2) * in1 + ((Y1-Y2)/(Y1+Y2))*in2   with Y_i=1/Z_i
+    const Y1 = 1/Z1, Y2 = 1/Z2;
+    const t12 = 2*Y1/(Y1+Y2);
+    const t21 = 2*Y2/(Y1+Y2);
+    const r1 = (Y1-Y2)/(Y1+Y2);
+    const r2 = -r1;
+    const out2 = t12*in1 + r2*in2;     // goes into line2 from the left (a2p at index 0)
+    const out1 = r1*in1 + t21*in2;     // reflects back in line1 (a1m at index N1-1)
+    n2p[0] = out2;
+    n1m[N1-1] = out1;
+    // Ends: absorb (so we can see the isolated scattering)
+    n1p[0] = 0; n2m[N2-1] = 0;
+    a1p = n1p; a1m = n1m; a2p = n2p; a2m = n2m;
+  }
+  function draw(){
+    zV.textContent = parseFloat(zIn.value).toFixed(2);
+    const Z1 = 1, Z2 = parseFloat(zIn.value);
+    const r = (Z2-Z1)/(Z1+Z2);
+    const t = 2*Z2/(Z1+Z2);
+    stat.textContent = 'r = '+r.toFixed(2)+'   t = '+t.toFixed(2);
+    for(let k=0;k<2;k++) step();
+    ctx.fillStyle='#12141c'; ctx.fillRect(0,0,W,H);
+    // axis
+    ctx.strokeStyle='rgba(74,157,232,0.18)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,H*0.5); ctx.lineTo(W,H*0.5); ctx.stroke();
+    // junction
+    const xJ = W*0.5;
+    ctx.setLineDash([4,3]); ctx.strokeStyle='rgba(232,90,122,0.8)';
+    ctx.beginPath(); ctx.moveTo(xJ,0); ctx.lineTo(xJ,H); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#8a8d9a'; ctx.font="11px 'Lucida Console',monospace";
+    ctx.textAlign='right'; ctx.fillText('Z1', xJ-8, 18);
+    ctx.textAlign='left'; ctx.fillText('Z2', xJ+8, 18);
+    // draw line1 (left half)
+    const yAmp = H*0.22;
+    ctx.lineWidth = 1;
+    function plot(arr, col, x0, x1){
+      ctx.strokeStyle = col; ctx.beginPath();
+      const N = arr.length;
+      for(let i=0;i<N;i++){
+        const x = x0 + i/(N-1)*(x1-x0);
+        const y = H*0.5 - arr[i]*yAmp;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    }
+    plot(a1p, 'rgba(92,232,154,0.8)', 0, xJ);
+    plot(a1m, 'rgba(176,106,232,0.8)', 0, xJ);
+    plot(a2p, 'rgba(92,232,154,0.8)', xJ, W);
+    plot(a2m, 'rgba(176,106,232,0.8)', xJ, W);
+    requestAnimationFrame(draw);
+  }
+  btn.addEventListener('click', firePulse);
+  zIn.addEventListener('input', ()=>{});
+  firePulse();
+  draw();
+});
+
+// ── CH 7 bowed string ─────────────────────────────────────────
+registerDemo(function ch7Demo(){
+  const c = document.getElementById('ch7bow');
+  if(!c) return;
+  const H = 320;
+  let W = fitWidth(c);
+  let ctx = setupCanvas(c, W, H);
+  window.addEventListener('resize', ()=>{ W = fitWidth(c); ctx = setupCanvas(c, W, H); });
+  const FIn = document.getElementById('ch7F'); const FV = document.getElementById('ch7FV');
+  const VIn = document.getElementById('ch7V'); const VV = document.getElementById('ch7VV');
+  const PIn = document.getElementById('ch7P'); const PV = document.getElementById('ch7PV');
+  const fIn = document.getElementById('ch7f'); const fV = document.getElementById('ch7fV');
+  const btn = document.getElementById('ch7start');
+  let lastVel = new Float32Array(200);
+  let lastOut = new Float32Array(11025);
+  function draw(){
+    FV.textContent = parseFloat(FIn.value).toFixed(2);
+    VV.textContent = parseFloat(VIn.value).toFixed(2);
+    PV.textContent = parseFloat(PIn.value).toFixed(3);
+    fV.textContent = fIn.value;
+    ctx.fillStyle='#12141c'; ctx.fillRect(0,0,W,H);
+    const topH = H*0.5;
+    ctx.fillStyle='#8a8d9a'; ctx.font="10px 'Lucida Console',monospace"; ctx.textAlign='left';
+    ctx.fillText('string velocity at snapshot', 8, 14);
+    ctx.strokeStyle='#e8a44a'; ctx.lineWidth=1.5; ctx.beginPath();
+    for(let i=0;i<lastVel.length;i++){
+      const x = i/(lastVel.length-1)*W;
+      const y = topH*0.5 + 12 - lastVel[i]*topH*0.3;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#8a8d9a'; ctx.fillText('bridge output (last 0.5 s)', 8, topH+18);
+    ctx.strokeStyle='#4a9de8'; ctx.lineWidth=1; ctx.beginPath();
+    for(let x=0;x<W;x++){
+      const i = Math.floor(x/W*lastOut.length);
+      const y = topH+32 + (H-topH-50)*0.5 - lastOut[i]*(H-topH-50)*0.45;
+      if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  function bow(){
+    const sr = 22050;
+    const f = parseFloat(fIn.value);
+    const N = Math.max(10, Math.round(sr/f/2));  // half-period per delay line
+    const Fb = parseFloat(FIn.value);
+    const Vb = parseFloat(VIn.value);
+    const pos = parseFloat(PIn.value);
+    const iBow = Math.max(1, Math.min(N-2, Math.floor(pos*N)));
+    const dr = new Float32Array(N);     // right-going velocity wave
+    const dl = new Float32Array(N);     // left-going velocity wave
+    // one-pole loop filter at each end
+    const a = 0.9;  // brightness
+    let stateR = 0, stateL = 0;
+    const g = 0.995;
+    // Friction table μ(vrel) = μd + (μs-μd) e^-|v|/v0 * sign(v). We want force = Fb*μ.
+    // Velocity-increment form: The arriving waves at the bow location contribute the string velocity there:
+    // vstring = dr[iBow]+dl[iBow]; vrel = Vb - vstring. The bow applies an impulsive velocity update Δv = Fb*μ(vrel)/Z.
+    // We simulate this each sample.
+    const dur = Math.floor(sr*1.5);
+    const out = new Float32Array(dur);
+    const mu_s = 0.8, mu_d = 0.3, v0 = 0.15;
+    let snapI = Math.floor(dur*0.6);
+    let snapVel = null;
+    for(let n=0;n<dur;n++){
+      // Bow interaction at iBow
+      const vs = dr[iBow] + dl[iBow];
+      let vrel = Vb - vs;
+      let mu;
+      if(vrel>=0) mu = mu_d + (mu_s-mu_d)*Math.exp(-vrel/v0);
+      else         mu = -(mu_d + (mu_s-mu_d)*Math.exp(vrel/v0));
+      const dv = Fb * mu * 0.5;
+      // Split equally into right-going and left-going increments
+      dr[iBow] += dv;
+      dl[iBow] += dv;
+      // Read bridge
+      const bridge = dr[N-1] + dl[N-1];
+      out[n] = bridge * 0.6;
+      // Shift right line right; shift left line left; reflect at ends.
+      // Simplest: rotate arrays
+      // right end: new dl[N-1] = -lowpass(dr[N-1])*g
+      stateR = (1-a)*dr[N-1] + a*stateR;
+      const rRef = -stateR * g;
+      stateL = (1-a)*dl[0]   + a*stateL;
+      const lRef = -stateL * g;
+      // Shift dr to the right (from N-2 down to 0 -> move index i to i+1)
+      for(let i=N-1;i>0;i--) dr[i] = dr[i-1];
+      dr[0] = lRef;
+      // Shift dl to the left
+      for(let i=0;i<N-1;i++) dl[i] = dl[i+1];
+      dl[N-1] = rRef;
+      if(n===snapI) snapVel = new Float32Array(N);
+      if(n===snapI && snapVel){
+        for(let i=0;i<N;i++) snapVel[i] = dr[i]+dl[i];
+      }
+    }
+    if(snapVel){
+      lastVel = new Float32Array(200);
+      for(let i=0;i<200;i++) lastVel[i] = snapVel[Math.floor(i/200*N)];
+    }
+    lastOut = out.slice(Math.max(0,dur-11025));
+    applyFade(out, 256);
+    draw();
+    playBuffer(out, sr);
+  }
+  [FIn,VIn,PIn,fIn].forEach(el=>el.addEventListener('input', draw));
+  btn.addEventListener('click', bow);
+  draw();
+});
+
+// ── CH 8 clarinet ─────────────────────────────────────────────
+registerDemo(function ch8Demo(){
+  const c = document.getElementById('ch8cl');
+  if(!c) return;
+  const H = 280;
+  let W = fitWidth(c);
+  let ctx = setupCanvas(c, W, H);
+  window.addEventListener('resize', ()=>{ W = fitWidth(c); ctx = setupCanvas(c, W, H); });
+  const pmIn = document.getElementById('ch8pm'); const pmV = document.getElementById('ch8pmV');
+  const emIn = document.getElementById('ch8em'); const emV = document.getElementById('ch8emV');
+  const fIn = document.getElementById('ch8f');  const fV = document.getElementById('ch8fV');
+  const btn = document.getElementById('ch8blow');
+  let lastMP = new Float32Array(4000);
+  let lastOut = new Float32Array(11025);
+  function draw(){
+    pmV.textContent = parseFloat(pmIn.value).toFixed(2);
+    emV.textContent = parseFloat(emIn.value).toFixed(2);
+    fV.textContent = fIn.value;
+    ctx.fillStyle='#12141c'; ctx.fillRect(0,0,W,H);
+    const topH = H*0.5;
+    ctx.fillStyle='#8a8d9a'; ctx.font="10px 'Lucida Console',monospace"; ctx.textAlign='left';
+    ctx.fillText('mouthpiece pressure (0.2 s window)', 8, 14);
+    ctx.strokeStyle='#e8a44a'; ctx.lineWidth=1; ctx.beginPath();
+    for(let x=0;x<W;x++){
+      const i = Math.floor(x/W*lastMP.length);
+      const y = topH*0.5+10 - lastMP[i]*topH*0.35;
+      if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#8a8d9a'; ctx.fillText('bell output (last 0.5 s)', 8, topH+18);
+    ctx.strokeStyle='#4a9de8'; ctx.lineWidth=1; ctx.beginPath();
+    for(let x=0;x<W;x++){
+      const i = Math.floor(x/W*lastOut.length);
+      const y = topH+32 + (H-topH-50)*0.5 - lastOut[i]*(H-topH-50)*0.45;
+      if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  function blow(){
+    const sr = 22050;
+    const f = parseFloat(fIn.value);
+    const pm = parseFloat(pmIn.value);
+    const em = parseFloat(emIn.value);  // reed stiffness scale
+    // Cylindrical bore closed at mouthpiece, open at bell; fundamental f1 = c/(4L)
+    // For the digital model we treat the waveguide as a bidirectional line of length N samples (one-way) so round-trip = 2N
+    // and round-trip = sr/f for pressure boundary conditions giving f1 = sr/(2N).  The closed (mouthpiece) end reflects +1;
+    // the open (bell) end reflects -1 with mild loss.  In real clarinets the odd-harmonic series comes from the closed/open
+    // mix; this model reproduces that.
+    const N = Math.max(8, Math.round(sr/(2*f)));
+    const line = new Float32Array(2*N);
+    // reed table
+    const pc = 1.2 * em;  // closure pressure
+    const A = 0.7;
+    // Simulate
+    const dur = Math.floor(sr*1.5);
+    const out = new Float32Array(dur);
+    const mp = new Float32Array(dur);
+    let ptr = 0;
+    let bellLow = 0;
+    for(let n=0;n<dur;n++){
+      // Read pressure arriving at mouthpiece (from right)
+      const pArriveMouth = line[(ptr + N) % (2*N)];
+      // pressure at mouthpiece (sum of incoming and outgoing at boundary): pmouth = pPlus + pMinus. Closed end: pPlus = +pMinus so pmouth = 2*pMinus
+      // For simplicity use pmouth = pArriveMouth; compute reed flow from (pm - pmouth).
+      const dp = pm - pArriveMouth;
+      let u = 0;
+      if(dp>0){
+        const x = Math.min(1, dp/pc);
+        u = A * dp * (1 - x) * (1 - x);
+      }
+      // Reed injects into the forward-going wave
+      const inject = u;
+      line[ptr] = pArriveMouth + inject;     // new outgoing at mouth
+      // Read bell end
+      const pBell = line[(ptr + N - 1 + 2*N)%(2*N)];
+      // Bell reflection: lowpass + sign flip + small loss
+      bellLow = 0.7*pBell + 0.3*bellLow;
+      const bellRef = -bellLow*0.98;
+      line[(ptr + 2*N - 1)%(2*N)] = bellRef;
+      // Advance pointer
+      ptr = (ptr - 1 + 2*N)%(2*N);
+      // Bell radiation = (1+r)/2 * pBell ≈ 0.5*(pBell - bellRef)
+      const rad = 0.5*(pBell - bellRef);
+      out[n] = rad;
+      mp[n]  = pArriveMouth + inject;
+    }
+    const slice = 4000;
+    lastMP = mp.slice(Math.floor(dur*0.5), Math.floor(dur*0.5)+slice);
+    lastOut = out.slice(Math.max(0,dur-11025));
+    applyFade(out, 256);
+    draw();
+    playBuffer(out, sr);
+  }
+  [pmIn,emIn,fIn].forEach(el=>el.addEventListener('input', draw));
+  btn.addEventListener('click', blow);
+  draw();
+});
+
+// ── CH 9 FDTD square membrane ─────────────────────────────────
+registerDemo(function ch9Demo(){
+  const c = document.getElementById('ch9fdtd');
+  if(!c) return;
+  const H = 340;
+  let W = fitWidth(c);
+  let ctx = setupCanvas(c, W, H);
+  window.addEventListener('resize', ()=>{ W = fitWidth(c); ctx = setupCanvas(c, W, H); });
+  const dmpIn = document.getElementById('ch9dmp'); const dmpV = document.getElementById('ch9dmpV');
+  const crIn = document.getElementById('ch9cr'); const crV = document.getElementById('ch9crV');
+  const resetBtn = document.getElementById('ch9reset');
+  const listenBtn = document.getElementById('ch9listen');
+  const stat = document.getElementById('ch9stat');
+  const Nx = 48, Ny = 48;
+  let u  = new Float32Array(Nx*Ny);
+  let up = new Float32Array(Nx*Ny);
+  let un = new Float32Array(Nx*Ny);
+  const micX = Math.floor(Nx*0.72), micY = Math.floor(Ny*0.33);
+  const micBuf = [];
+  function reset(){ u.fill(0); up.fill(0); un.fill(0); micBuf.length=0; }
+  function excite(ix,iy,amp){
+    for(let j=-3;j<=3;j++)for(let i=-3;i<=3;i++){
+      const xi = ix+i, yi = iy+j;
+      if(xi<1||xi>=Nx-1||yi<1||yi>=Ny-1) continue;
+      const d2 = i*i+j*j;
+      u[yi*Nx+xi] += amp*Math.exp(-d2/3);
+    }
+  }
+  function step(){
+    const lam = parseFloat(crIn.value);
+    const lam2 = lam*lam;
+    const dmp = 1 - parseFloat(dmpIn.value);
+    for(let j=1;j<Ny-1;j++){
+      for(let i=1;i<Nx-1;i++){
+        const k = j*Nx+i;
+        un[k] = dmp*(2*u[k] - up[k] + lam2*(u[k+1]+u[k-1]+u[k+Nx]+u[k-Nx] - 4*u[k]));
+      }
+    }
+    // Clamped boundaries (zero)
+    const tmp = up; up = u; u = un; un = tmp;
+    micBuf.push(u[micY*Nx+micX]);
+    if(micBuf.length>44100) micBuf.shift();
+  }
+  function draw(){
+    dmpV.textContent = parseFloat(dmpIn.value).toFixed(4);
+    crV.textContent = parseFloat(crIn.value).toFixed(3);
+    for(let k=0;k<2;k++) step();
+    const cellW = W / Nx;
+    const cellH = H / Ny;
+    // find max magnitude
+    let m = 1e-6;
+    for(let k=0;k<u.length;k++) if(Math.abs(u[k])>m) m = Math.abs(u[k]);
+    for(let j=0;j<Ny;j++){
+      for(let i=0;i<Nx;i++){
+        const v = u[j*Nx+i]/m;
+        const vp = Math.max(0, v), vm = Math.max(0,-v);
+        const r = Math.floor(232*vp + 74*vm);
+        const g = Math.floor(164*vp + 157*vm);
+        const b = Math.floor(74*vp + 232*vm);
+        ctx.fillStyle = 'rgb('+r+','+g+','+b+')';
+        ctx.fillRect(i*cellW, j*cellH, cellW+1, cellH+1);
+      }
+    }
+    // microphone dot
+    ctx.fillStyle = '#e85a7a';
+    ctx.beginPath(); ctx.arc(micX*cellW+cellW/2, micY*cellH+cellH/2, 5, 0, 2*Math.PI); ctx.fill();
+    stat.textContent = 'mic buffer: '+micBuf.length+' samples';
+    requestAnimationFrame(draw);
+  }
+  c.addEventListener('click', (ev)=>{
+    const rect = c.getBoundingClientRect();
+    const ix = Math.floor((ev.clientX-rect.left)/rect.width*Nx);
+    const iy = Math.floor((ev.clientY-rect.top)/rect.height*Ny);
+    excite(ix,iy,1.5);
+  });
+  resetBtn.addEventListener('click', reset);
+  listenBtn.addEventListener('click', ()=>{
+    if(micBuf.length<100) return;
+    const sr = 22050;
+    // Resample mic buffer (captured at display rate) into audio-rate playable buffer
+    // For effective sound, we'll run a dedicated higher-rate simulation here
+    const Nx2 = 48, Ny2 = 48;
+    let a = new Float32Array(Nx2*Ny2), b = new Float32Array(Nx2*Ny2), cc = new Float32Array(Nx2*Ny2);
+    const lam = parseFloat(crIn.value), lam2 = lam*lam;
+    const dmp = 1 - parseFloat(dmpIn.value)*2;
+    // excite at center
+    for(let jj=-3;jj<=3;jj++)for(let ii=-3;ii<=3;ii++){
+      const xi = Math.floor(Nx2/2)+ii, yi = Math.floor(Ny2/2)+jj;
+      if(xi<1||xi>=Nx2-1||yi<1||yi>=Ny2-1) continue;
+      const d2=ii*ii+jj*jj;
+      a[yi*Nx2+xi] = 1.5*Math.exp(-d2/3);
+    }
+    const dur = Math.floor(sr*1.5);
+    const out = new Float32Array(dur);
+    for(let n=0;n<dur;n++){
+      for(let j=1;j<Ny2-1;j++)for(let i=1;i<Nx2-1;i++){
+        const k=j*Nx2+i;
+        cc[k] = dmp*(2*a[k]-b[k]+lam2*(a[k+1]+a[k-1]+a[k+Nx2]+a[k-Nx2]-4*a[k]));
+      }
+      const tmp=b; b=a; a=cc; cc=tmp;
+      out[n] = a[micY*Nx2+micX];
+    }
+    applyFade(out, 256);
+    playBuffer(out, sr);
+  });
+  reset();
+  excite(Math.floor(Nx/2), Math.floor(Ny/2), 1.2);
+  draw();
+});
+
+// ── CH 10 modal synthesis ─────────────────────────────────────
+registerDemo(function ch10Demo(){
+  const c = document.getElementById('ch10modal');
+  if(!c) return;
+  const H = 300;
+  let W = fitWidth(c);
+  let ctx = setupCanvas(c, W, H);
+  window.addEventListener('resize', ()=>{ W = fitWidth(c); ctx = setupCanvas(c, W, H); });
+  const pSel = document.getElementById('ch10p');
+  const inhIn = document.getElementById('ch10inh'); const inhV = document.getElementById('ch10inhV');
+  const decIn = document.getElementById('ch10dec'); const decV = document.getElementById('ch10decV');
+  const btn = document.getElementById('ch10strike');
+  let lastOut = new Float32Array(17640);  // 0.8 s @ 22050
+  function presetModes(name){
+    // each: {f, a, tau}
+    const modes = [];
+    if(name==='bar'){
+      // marimba bar ~3.9 * f1  for 2nd partial etc
+      const f1 = 260;
+      [1, 3.932, 9.538, 17.65].forEach((r,i)=> modes.push({f: f1*r, a: [1,0.35,0.18,0.08][i], tau: [0.9,0.6,0.4,0.3][i]}));
+    } else if(name==='plate'){
+      const f1 = 180;
+      [1, 2.24, 3.56, 4.91, 6.32, 7.89].forEach((r,i)=> modes.push({f: f1*r, a: Math.pow(0.7,i), tau: 2.0*Math.pow(0.8,i)}));
+    } else if(name==='bell'){
+      const f1 = 220;
+      [0.5, 1.0, 1.2, 1.5, 2.0, 2.5, 3.02, 4.0, 5.33].forEach((r,i)=> modes.push({f: f1*r, a: Math.pow(0.85,i)*0.8, tau: 4.0*Math.pow(0.85,i)}));
+    } else if(name==='tube'){
+      const f1 = 330;
+      [1,2,3,4,5].forEach((r,i)=> modes.push({f: f1*r, a: Math.pow(0.75,i), tau: 0.7*Math.pow(0.9,i)}));
+    }
+    return modes;
+  }
+  function draw(){
+    inhV.textContent = parseFloat(inhIn.value).toFixed(2);
+    decV.textContent = parseFloat(decIn.value).toFixed(1);
+    ctx.fillStyle='#12141c'; ctx.fillRect(0,0,W,H);
+    // top: mode map
+    const topH = H*0.5;
+    const modes = presetModes(pSel.value);
+    const inh = parseFloat(inhIn.value);
+    const dscale = parseFloat(decIn.value);
+    // plot
+    ctx.fillStyle='#8a8d9a'; ctx.font="10px 'Lucida Console',monospace"; ctx.textAlign='left';
+    ctx.fillText('mode frequencies / amplitudes / decays', 8, 14);
+    // grid
+    ctx.strokeStyle='rgba(74,157,232,0.12)'; ctx.lineWidth=1;
+    for(let f=0;f<5000;f+=1000){
+      const x = Math.log10(Math.max(1,f))/Math.log10(6000)*W;
+      ctx.beginPath(); ctx.moveTo(x,20); ctx.lineTo(x,topH-6); ctx.stroke();
+    }
+    modes.forEach(m=>{
+      const f = m.f * (1 + inh*0.08*Math.random());
+      const x = Math.log10(Math.max(1,f))/Math.log10(6000)*W;
+      const y = 20 + (topH-30) - m.a*(topH-30);
+      const r = Math.max(3, 10*m.tau*dscale/4);
+      ctx.fillStyle='rgba(232,164,74,0.8)';
+      ctx.beginPath(); ctx.arc(x,y,r,0,2*Math.PI); ctx.fill();
+      ctx.fillStyle='#8a8d9a'; ctx.fillText(Math.round(f)+' Hz', x-20, y-r-4);
+    });
+    // bottom: waveform
+    ctx.fillStyle='#8a8d9a'; ctx.fillText('radiated waveform (0.8 s)', 8, topH+18);
+    ctx.strokeStyle='#4a9de8'; ctx.lineWidth=1; ctx.beginPath();
+    for(let x=0;x<W;x++){
+      const i = Math.floor(x/W*lastOut.length);
+      const y = topH+32 + (H-topH-50)*0.5 - lastOut[i]*(H-topH-50)*0.45;
+      if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  function strike(){
+    const sr = 22050;
+    const dur = Math.floor(sr*0.9);
+    const out = new Float32Array(dur);
+    const modes = presetModes(pSel.value);
+    const inh = parseFloat(inhIn.value);
+    const dscale = parseFloat(decIn.value);
+    // Build biquad resonators for each mode
+    const banks = modes.map(m=>{
+      const f = m.f * (1 + inh*0.08*((Math.random()-0.5)*2));
+      const w = 2*Math.PI*f/sr;
+      const tau = m.tau*dscale;
+      const r = Math.exp(-1/(tau*sr)*Math.PI);  // pole radius
+      const c1 = 2*r*Math.cos(w);
+      const c2 = -r*r;
+      return {c1, c2, y1:0, y2:0, a: m.a};
+    });
+    // Excite all with impulse, sum
+    for(let n=0;n<dur;n++){
+      let s=0;
+      for(const bk of banks){
+        const inp = (n===0) ? 1 : 0;
+        const y = inp + bk.c1*bk.y1 + bk.c2*bk.y2;
+        bk.y2 = bk.y1; bk.y1 = y;
+        s += bk.a*y;
+      }
+      out[n] = s*0.15;
+    }
+    lastOut = out;
+    applyFade(out, 256);
+    draw();
+    playBuffer(out, sr);
+  }
+  [pSel,inhIn,decIn].forEach(el=>el.addEventListener('input', draw));
+  btn.addEventListener('click', strike);
+  draw();
+});
+
+// ── CH 11 tiny commuted piano ─────────────────────────────────
+registerDemo(function ch11Demo(){
+  const c = document.getElementById('ch11piano');
+  if(!c) return;
+  const H = 260;
+  let W = fitWidth(c);
+  let ctx = setupCanvas(c, W, H);
+  window.addEventListener('resize', ()=>{ W = fitWidth(c); ctx = setupCanvas(c, W, H); });
+  const vIn = document.getElementById('ch11v'); const vV = document.getElementById('ch11vV');
+  const bIn = document.getElementById('ch11b'); const bV = document.getElementById('ch11bV');
+  const arp = document.getElementById('ch11arp');
+  const notes = [261.63, 277.18, 293.66, 311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88];
+  const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  let hoverIdx = -1;
+  function draw(){
+    vV.textContent = parseFloat(vIn.value).toFixed(2);
+    bV.textContent = parseFloat(bIn.value).toFixed(3);
+    ctx.fillStyle='#12141c'; ctx.fillRect(0,0,W,H);
+    const keyW = W/notes.length;
+    for(let i=0;i<notes.length;i++){
+      const x = i*keyW;
+      const isBlack = names[i].includes('#');
+      ctx.fillStyle = isBlack ? '#1a1d2a' : (hoverIdx===i ? '#e8a44a' : '#d4d6e0');
+      ctx.fillRect(x+2, 20, keyW-4, H-40);
+      ctx.strokeStyle = '#0a0b0f'; ctx.strokeRect(x+2, 20, keyW-4, H-40);
+      ctx.fillStyle = isBlack ? '#d4d6e0' : '#0a0b0f';
+      ctx.font = "12px 'Lucida Console',monospace"; ctx.textAlign='center';
+      ctx.fillText(names[i], x+keyW/2, H-12);
+    }
+    ctx.fillStyle='#8a8d9a'; ctx.font="11px 'Lucida Console',monospace"; ctx.textAlign='left';
+    ctx.fillText('commuted piano — click a key', 8, 14);
+  }
+  // Pre-compute a soundboard impulse response
+  const sr = 22050;
+  function soundboardIR(len){
+    const ir = new Float32Array(len);
+    // sparse early reflections + decaying colored noise
+    for(let i=0;i<len;i++){
+      ir[i] = (Math.random()*2-1) * Math.exp(-i/(sr*0.3));
+    }
+    // mild lowpass
+    let y=0; for(let i=0;i<len;i++){ y = 0.5*y + 0.5*ir[i]; ir[i] = y*0.08; }
+    // early peaks
+    const peaks = [12, 55, 120, 230, 480, 710, 1100];
+    peaks.forEach(p=>{ if(p<len) ir[p] += 0.5*Math.exp(-p/5000); });
+    ir[0] += 1;
+    return ir;
+  }
+  const board = soundboardIR(Math.floor(sr*0.12));
+  // Commuted excitation = hammer*board convolved once
+  function hammerExc(dur, vel){
+    const e = new Float32Array(dur);
+    const ln = Math.floor(dur*0.02);
+    for(let i=0;i<ln;i++){
+      const t = i/ln;
+      e[i] = vel*(t)*(1-t)*4;
+    }
+    return e;
+  }
+  function convolve(a, b){
+    const out = new Float32Array(a.length + b.length - 1);
+    const A = a.length, B = b.length;
+    for(let i=0;i<A;i++){
+      const ai = a[i];
+      if(Math.abs(ai)<1e-8) continue;
+      for(let j=0;j<B;j++) out[i+j] += ai*b[j];
+    }
+    return out;
+  }
+  function playNote(f, vel){
+    const N = Math.max(8, Math.round(sr/f));
+    const br = parseFloat(bIn.value);
+    // one-pole loop filter decay
+    const dec = Math.pow(br, 1);
+    // excitation: hammer * board IR, truncated
+    const ham = hammerExc(Math.floor(sr*0.005), vel);
+    const excFull = convolve(ham, board);
+    const eLen = Math.min(excFull.length, N*2);
+    const exc = excFull.slice(0, eLen);
+    // waveguide: single delay line + lowpass + gain
+    const line = new Float32Array(N);
+    // load excitation
+    for(let i=0;i<Math.min(eLen, N);i++) line[i] = exc[i];
+    let stateR = 0;
+    const dur = Math.floor(sr*2);
+    const out = new Float32Array(dur);
+    const a = br;
+    const g = 0.996;
+    let ptr = 0;
+    for(let n=0;n<dur;n++){
+      const cur = line[ptr];
+      stateR = (1-a)*cur + a*stateR;
+      const fb = stateR*g;
+      // if excitation still streaming, add
+      const remaining = (n < exc.length-N) ? exc[n+N] : 0;
+      line[ptr] = fb + remaining*0.3;
+      out[n] = cur;
+      ptr = (ptr+1)%N;
+    }
+    // normalise
+    let m=0; for(let i=0;i<out.length;i++) if(Math.abs(out[i])>m) m=Math.abs(out[i]);
+    if(m>0) for(let i=0;i<out.length;i++) out[i] = out[i]/m*0.7;
+    applyFade(out, 256);
+    playBuffer(out, sr);
+  }
+  c.addEventListener('mousemove', (ev)=>{
+    const rect = c.getBoundingClientRect();
+    const i = Math.floor((ev.clientX-rect.left)/rect.width*notes.length);
+    if(i!==hoverIdx){ hoverIdx = i; draw(); }
+  });
+  c.addEventListener('mouseleave', ()=>{ hoverIdx=-1; draw(); });
+  c.addEventListener('click', (ev)=>{
+    const rect = c.getBoundingClientRect();
+    const i = Math.floor((ev.clientX-rect.left)/rect.width*notes.length);
+    if(i>=0 && i<notes.length) playNote(notes[i], parseFloat(vIn.value));
+  });
+  arp.addEventListener('click', ()=>{
+    // C E G C ascending
+    const seq = [0, 4, 7, 12];
+    for(let i=0;i<seq.length;i++){
+      setTimeout(()=>{ const n = seq[i]; const f = 261.63 * Math.pow(2, n/12); playNote(f, parseFloat(vIn.value)); }, i*350);
+    }
+  });
+  draw();
+});
+
+// ── CH 12 FDN reverb ──────────────────────────────────────────
+registerDemo(function ch12Demo(){
+  const c = document.getElementById('ch12fdn');
+  if(!c) return;
+  const H = 240;
+  let W = fitWidth(c);
+  let ctx = setupCanvas(c, W, H);
+  window.addEventListener('resize', ()=>{ W = fitWidth(c); ctx = setupCanvas(c, W, H); });
+  const rtIn = document.getElementById('ch12rt'); const rtV = document.getElementById('ch12rtV');
+  const colIn = document.getElementById('ch12col'); const colV = document.getElementById('ch12colV');
+  const szIn = document.getElementById('ch12sz'); const szV = document.getElementById('ch12szV');
+  const impBtn = document.getElementById('ch12imp');
+  const snBtn = document.getElementById('ch12snare');
+  let lastIR = new Float32Array(22050);
+  let lastOut = new Float32Array(22050);
+  function draw(){
+    rtV.textContent = parseFloat(rtIn.value).toFixed(1);
+    colV.textContent = parseFloat(colIn.value).toFixed(2);
+    szV.textContent = parseFloat(szIn.value).toFixed(2);
+    ctx.fillStyle='#12141c'; ctx.fillRect(0,0,W,H);
+    const halfW = W/2;
+    // left = IR
+    ctx.fillStyle='#8a8d9a'; ctx.font="10px 'Lucida Console',monospace"; ctx.textAlign='left';
+    ctx.fillText('impulse response', 8, 14);
+    ctx.strokeStyle='#e8a44a'; ctx.lineWidth=1; ctx.beginPath();
+    for(let x=0;x<halfW;x++){
+      const i = Math.floor(x/halfW*lastIR.length);
+      const y = H*0.5 - lastIR[i]*H*0.4;
+      if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // right = wet
+    ctx.fillText('wet signal', halfW+8, 14);
+    ctx.strokeStyle='#4a9de8'; ctx.beginPath();
+    for(let x=0;x<halfW;x++){
+      const i = Math.floor(x/halfW*lastOut.length);
+      const y = H*0.5 - lastOut[i]*H*0.4;
+      if(x===0) ctx.moveTo(halfW+x,y); else ctx.lineTo(halfW+x,y);
+    }
+    ctx.stroke();
+    // divider
+    ctx.strokeStyle='rgba(74,157,232,0.3)'; ctx.beginPath(); ctx.moveTo(halfW,0); ctx.lineTo(halfW,H); ctx.stroke();
+  }
+  function runFDN(input){
+    const sr = 22050;
+    const rt = parseFloat(rtIn.value);
+    const col = parseFloat(colIn.value);
+    const sz = parseFloat(szIn.value);
+    // 4 delay lines, coprime lengths ~ 19/23/29/31 ms * sz
+    const Lms = [19, 23, 29, 31];
+    const Ls = Lms.map(m => Math.max(8, Math.round(m*sz*sr/1000)));
+    const lines = Ls.map(L => new Float32Array(L));
+    const ptrs = [0,0,0,0];
+    // Hadamard 4x4 (normalised 1/2)
+    const H4 = [
+      [1, 1, 1, 1],
+      [1,-1, 1,-1],
+      [1, 1,-1,-1],
+      [1,-1,-1, 1],
+    ].map(row => row.map(v => v*0.5));
+    // per-line loop gain to give target RT60
+    const g = Ls.map(L => Math.pow(10, -3*L/(sr*rt)));
+    // per-line lowpass (colour)
+    const lpA = col;
+    const lpS = [0,0,0,0];
+    const out = new Float32Array(input.length + sr);  // tail
+    for(let n=0;n<out.length;n++){
+      const xin = n<input.length ? input[n] : 0;
+      // Read current outputs
+      const reads = [0,0,0,0];
+      for(let k=0;k<4;k++) reads[k] = lines[k][ptrs[k]];
+      // Sum for wet output
+      let yw = 0; for(let k=0;k<4;k++) yw += reads[k]*0.5;
+      // Feedback matrix × reads, then per-line lowpass+gain, then input injection
+      for(let k=0;k<4;k++){
+        let s = 0;
+        for(let j=0;j<4;j++) s += H4[k][j]*reads[j];
+        lpS[k] = (1-lpA)*s + lpA*lpS[k];
+        const wnew = g[k]*lpS[k] + xin*0.3;
+        lines[k][ptrs[k]] = wnew;
+        ptrs[k] = (ptrs[k]+1)%Ls[k];
+      }
+      out[n] = yw + xin*0.2;
+    }
+    return out;
+  }
+  function impulse(){
+    const sr = 22050;
+    const inp = new Float32Array(64);
+    inp[0] = 1;
+    const ir = runFDN(inp);
+    lastIR = ir.slice(0, 22050);
+    lastOut = lastIR;
+    applyFade(ir, 64);
+    draw();
+    playBuffer(ir.slice(0, sr*3), sr);
+  }
+  function snare(){
+    const sr = 22050;
+    // short tone+noise
+    const L = 2200;
+    const inp = new Float32Array(L);
+    for(let i=0;i<L;i++){
+      const t = i/sr;
+      const env = Math.exp(-t*40);
+      inp[i] = env*((Math.random()*2-1)*0.7 + 0.3*Math.sin(2*Math.PI*220*t));
+    }
+    const ir = runFDN(new Float32Array(64).fill(0, 0, 64));
+    lastIR = ir.slice(0, 22050);
+    const wet = runFDN(inp);
+    lastOut = wet.slice(0, 22050);
+    applyFade(wet, 64);
+    draw();
+    playBuffer(wet.slice(0, sr*3), sr);
+  }
+  [rtIn,colIn,szIn].forEach(el=>el.addEventListener('input', draw));
+  impBtn.addEventListener('click', impulse);
+  snBtn.addEventListener('click', snare);
+  // render a default IR for display
+  impulse();
+});
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  for(const f of window.__PASP_DEMOS__) try { f(); } catch(e){ console.error(e); }
+});
+
+})();
+</script>
+
+</body>
+</html>
