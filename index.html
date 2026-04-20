@@ -1434,7 +1434,11 @@ registerDemo(function ch3Demo(){
       const e = Math.exp(-(d*d)/60);
       aR[i] = 0.5*e; aL[i] = 0.5*e;
     }
-    const dmp = 1 - parseFloat(dmpIn.value);
+    // The display runs ~120 steps/sec; audio runs sr=22050 steps/sec.  If we re-used the same per-step
+    // damping factor, amplitude would decay by dmp^22050 (essentially zero) in under a second and the
+    // clip would be silent.  Scale the per-step loss so the per-second loss matches the display setting.
+    const dmpPerSec = parseFloat(dmpIn.value);          // slider = loss per step at viz rate (~120/s)
+    const dmp = Math.pow(1 - dmpPerSec, 120/sr);        // equivalent per-audio-sample retention
     for(let n=0;n<sr;n++){
       const nR = new Float32Array(N), nL = new Float32Array(N);
       for(let i=1;i<N;i++) nR[i] = aR[i-1]*dmp;
@@ -1497,7 +1501,9 @@ registerDemo(function ch4Demo(){
   function doPluck(){
     const sr = 22050;
     const f = parseFloat(fIn.value);
-    const L = Math.max(8, Math.floor(sr/f));
+    // Round-trip delay = 2*L samples; both ends invert so no net sign flip per cycle;
+    // fundamental = sr/(2*L) → L = sr/(2*f).
+    const L = Math.max(8, Math.floor(sr/(2*f)));
     const dec = parseFloat(dIn.value);
     const br = parseFloat(bIn.value);
     // per-sample loop gain g from RT60: g^(sr/L * dec) = 1/1000 => g = 10^(-3 L / (sr*dec))
@@ -1913,10 +1919,11 @@ registerDemo(function ch8Demo(){
     const em = parseFloat(emIn.value);  // reed stiffness scale
     // Cylindrical bore closed at mouthpiece, open at bell; fundamental f1 = c/(4L)
     // For the digital model we treat the waveguide as a bidirectional line of length N samples (one-way) so round-trip = 2N
-    // and round-trip = sr/f for pressure boundary conditions giving f1 = sr/(2N).  The closed (mouthpiece) end reflects +1;
-    // the open (bell) end reflects -1 with mild loss.  In real clarinets the odd-harmonic series comes from the closed/open
-    // mix; this model reproduces that.
-    const N = Math.max(8, Math.round(sr/(2*f)));
+    // The closed (mouthpiece) end reflects without sign flip; the open (bell) end reflects with sign flip.
+    // With a single sign flip per round trip, the signal needs TWO round trips (4*N samples) to return to
+    // its original sign, giving f1 = sr/(4*N), i.e. the classic c/(4L) quarter-wave clarinet fundamental.
+    // Solving for N: N = sr/(4*f).
+    const N = Math.max(8, Math.round(sr/(4*f)));
     const line = new Float32Array(2*N);
     // reed table
     const pc = 1.2 * em;  // closure pressure
@@ -2395,15 +2402,19 @@ registerDemo(function ch12Demo(){
     }
     return out;
   }
-  function impulse(){
-    const sr = 22050;
+  function renderIR(){
     const inp = new Float32Array(64);
     inp[0] = 1;
     const ir = runFDN(inp);
     lastIR = ir.slice(0, 22050);
     lastOut = lastIR;
-    applyFade(ir, 64);
     draw();
+    return ir;
+  }
+  function impulse(){
+    const sr = 22050;
+    const ir = renderIR();
+    applyFade(ir, 64);
     playBuffer(ir.slice(0, sr*3), sr);
   }
   function snare(){
@@ -2427,8 +2438,8 @@ registerDemo(function ch12Demo(){
   [rtIn,colIn,szIn].forEach(el=>el.addEventListener('input', draw));
   impBtn.addEventListener('click', impulse);
   snBtn.addEventListener('click', snare);
-  // render a default IR for display
-  impulse();
+  // Render a default IR for display only (no playback — Chrome autoplay rules + not polite to blast reverb on load)
+  renderIR();
 });
 
 document.addEventListener('DOMContentLoaded', ()=>{
