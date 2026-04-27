@@ -2133,8 +2133,12 @@ registerDemo(function ch10Demo(){
       const x = Math.log10(Math.max(1,f))/Math.log10(6000)*W;
       ctx.beginPath(); ctx.moveTo(x,20); ctx.lineTo(x,topH-6); ctx.stroke();
     }
-    modes.forEach(m=>{
-      const f = m.f * (1 + inh*0.08*Math.random());
+    // Use a deterministic per-mode offset so the dots don't jitter on every
+    // slider event, and so the displayed frequencies stay consistent with
+    // the audio (strike() uses its own random offsets at synthesis time).
+    modes.forEach((m, idx)=>{
+      const det = Math.sin(idx*1.7 + 0.3) * 0.5;  // in [-0.5, +0.5]
+      const f = m.f * (1 + inh*0.08*det);
       const x = Math.log10(Math.max(1,f))/Math.log10(6000)*W;
       const y = 20 + (topH-30) - m.a*(topH-30);
       const r = Math.max(3, 10*m.tau*dscale/4);
@@ -2427,7 +2431,8 @@ registerDemo(function ch12Demo(){
       const env = Math.exp(-t*40);
       inp[i] = env*((Math.random()*2-1)*0.7 + 0.3*Math.sin(2*Math.PI*220*t));
     }
-    const ir = runFDN(new Float32Array(64).fill(0, 0, 64));
+    const irInp = new Float32Array(64); irInp[0] = 1;
+    const ir = runFDN(irInp);
     lastIR = ir.slice(0, 22050);
     const wet = runFDN(inp);
     lastOut = wet.slice(0, 22050);
